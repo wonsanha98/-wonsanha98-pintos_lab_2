@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "palloc.h": "c",
+        "stdio.h": "c",
+        "thread.h": "c",
+        "typeinfo": "c",
+        "string.h": "c",
+        "init.h": "c",
+        "vaddr.h": "c",
+        "synch.h": "c",
+        "intr-stubs.h": "c",
+        "process.h": "c",
+        "intrinsic.h": "c",
+        "interrupt.h": "c",
+        "flags.h": "c"
+    }
+}
