@@ -12,8 +12,8 @@ input_init (void) {
 	intq_init (&buffer);
 }
 
-/* Adds a key to the input buffer.
-   Interrupts must be off and the buffer must not be full. */
+/* 입력 버퍼에 키를 추가한다.
+인터럽트는 꺼져 있어야 하며, 버퍼는 가득 차 있지 않아야 한다. */
 void
 input_putc (uint8_t key) {
 	ASSERT (intr_get_level () == INTR_OFF);

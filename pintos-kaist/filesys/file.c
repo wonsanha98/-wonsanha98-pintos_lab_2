@@ -132,7 +132,7 @@ file_allow_write (struct file *file) {
 	}
 }
 
-/* Returns the size of FILE in bytes. */
+/* FILE의 크기를 바이트 단위로 반환한다. */
 off_t
 file_length (struct file *file) {
 	ASSERT (file != NULL);
@@ -148,8 +148,7 @@ file_seek (struct file *file, off_t new_pos) {
 	file->pos = new_pos;
 }
 
-/* Returns the current position in FILE as a byte offset from the
- * start of the file. */
+/* 파일의 시작 지점으로부터의 바이트 오프셋으로, FILE에서의 현재 위치를 반환한다. */
 off_t
 file_tell (struct file *file) {
 	ASSERT (file != NULL);

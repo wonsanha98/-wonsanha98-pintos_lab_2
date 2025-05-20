@@ -25,6 +25,25 @@ syscall 명령어는 모델 특수 레지스터(MSR)의 값을 읽어서 동작�
 #define MSR_LSTAR 0xc0000082        /* long mode에서 SYSCALL 명령어가 호출될 때 제어가 이동하는 대상 주소를 의미한다. */
 #define MSR_SYSCALL_MASK 0xc0000084 /* eflags를 마스킹하기 위한 값. */
 
+void halt (void);
+void exit (int status);
+
+bool create(const char *name, unsigned initial_size);
+bool remove(const char *file);
+
+int open(const char *file);
+int filesize(int fd);
+
+
+int read(int fd, void *buffer, unsigned size);
+int write(int fd, const void *buffer, unsigned size);
+
+void seek (int fd, unsigned position);
+unsigned tell(int fd);
+void close(int fd);
+
+
+
 void
 syscall_init (void) {
 	write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48  |
@@ -42,7 +61,7 @@ syscall_init (void) {
  */
 void
 syscall_handler (struct intr_frame *f UNUSED) {
-	// TODO: Your implementation goes here.
+
 	int call_number = (int)f->R.rax;
 
 	switch(call_number){
@@ -59,12 +78,16 @@ syscall_handler (struct intr_frame *f UNUSED) {
 		case SYS_WAIT:
 			break;
 		case SYS_CREATE:
+			f->R.rax = create((const char *)f->R.rdi, (unsigned)f->R.rsi);
 			break;
 		case SYS_REMOVE:
+			f->R.rax = remove((const char *)f->R.rdi);
 			break;
 		case SYS_OPEN:
+			f->R.rax = open((const char *)f->R.rdi);
 			break;
 		case SYS_FILESIZE:
+			f->R.rax = filesize((int)f->R.rdi);
 			break;
 		case SYS_READ:
 			f->R.rax = read((int)f->R.rdi, (void*)f->R.rsi, (unsigned)f->R.rdx);
@@ -72,9 +95,15 @@ syscall_handler (struct intr_frame *f UNUSED) {
 		case SYS_WRITE:
 			f->R.rax = write((int)f->R.rdi, (const void*)f->R.rsi, (unsigned)f->R.rdx);
 			break;
-		// case 11:
-		// 	break;
-
+		case SYS_SEEK:
+			seek((int)f->R.rdi, (unsigned)f->R.rsi);
+			break;
+		case SYS_TELL:
+			f->R.rax = tell((int)f->R.rdi);
+			break;
+		case SYS_CLOSE:
+			close((int)f->R.rdi);
+			break;
 		default:
 			thread_exit();
 			break;
@@ -90,9 +119,55 @@ void halt (void){
 void exit (int status)
 {
 	struct thread *curr = thread_current();
-	printf("%s: exit(%d)\n", curr->name, status);
+	// curr->status = status;
+	printf("%s: exit(%d)\n", curr->name, status); 
 	thread_exit();
 }
+
+
+
+bool create(const char *name, unsigned initial_size)
+{
+	if(name == NULL)
+	{
+		exit(-1);
+	}
+
+	if(initial_size == 0)
+	{
+		false;
+	}
+	return filesys_create(name, initial_size);
+} 
+
+bool remove(const char *file)
+{
+	if(file == NULL)
+	{
+		exit(-1);
+	}
+	return filesys_remove(file);
+}
+
+int open(const char *file)
+{
+	if(file == NULL)
+	{
+		exit(-1);
+	}
+	struct file *open_file = filesys_open(file);
+	if(open_file == NULL)
+	{
+		return -1;
+	}
+	return (int)open_file;
+}
+
+int filesize(int fd)
+{
+	return file_length ((struct file *)fd);
+}
+
 
 int read(int fd, void *buffer, unsigned size)
 {
@@ -110,6 +185,8 @@ int read(int fd, void *buffer, unsigned size)
 
 int write(int fd, const void *buffer, unsigned size)
 {
+	// if(fd == 0)
+
 	if(fd == 1)
 	{
 		putbuf(buffer, size);
@@ -121,3 +198,41 @@ int write(int fd, const void *buffer, unsigned size)
 	// 	file_write();
 	// }
 }
+
+
+
+
+void seek (int fd, unsigned position)
+{
+	if(fd == NULL)
+	{
+		return;
+	}
+	file_seek ((struct file*)fd, position);
+}
+
+unsigned tell(int fd)
+{
+	if(fd == NULL)
+	{
+		return;
+	}
+	file_tell((struct file*)fd);
+}
+
+
+void close(int fd)
+{
+	if(fd < 2)
+	{
+		return;
+	}
+
+	if(fd == NULL)
+	{
+		exit(-1);
+	}
+
+	file_close((struct file*)fd);
+}
+

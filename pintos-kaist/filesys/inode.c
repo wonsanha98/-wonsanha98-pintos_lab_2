@@ -30,10 +30,10 @@ bytes_to_sectors (off_t size) {
 struct inode {
 	struct list_elem elem;              /* Element in inode list. */
 	disk_sector_t sector;               /* Sector number of disk location. */
-	int open_cnt;                       /* Number of openers. */
-	bool removed;                       /* True if deleted, false otherwise. */
+	int open_cnt;                       /* 열린 횟수(또는 열린 사용자 수). */
+	bool removed;                       /* 삭제된 경우 true, 그렇지 않으면 false. */
 	int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
-	struct inode_disk data;             /* Inode content. */
+	struct inode_disk data;             /* 아이노드(inode) 내용. */
 };
 
 /* Returns the disk sector that contains byte offset POS within
