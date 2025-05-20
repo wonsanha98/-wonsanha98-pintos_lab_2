@@ -52,22 +52,23 @@ syscall_handler (struct intr_frame *f UNUSED) {
 		case SYS_EXIT:
 			exit((int)f->R.rdi);
 			break;
-		// case 2:
-		// 	break;
-		// case 3:
-		// 	break;
-		// case 4:
-		// 	break;
-		// case 5:
-		// 	break;
-		// case 6:
-		// 	break;
-		// case 7:
-		// 	break;
-		// case 8:
-		// 	break;
-		// case 9:
-		// 	break;
+		case SYS_FORK:
+			break;
+		case SYS_EXEC:
+			break;
+		case SYS_WAIT:
+			break;
+		case SYS_CREATE:
+			break;
+		case SYS_REMOVE:
+			break;
+		case SYS_OPEN:
+			break;
+		case SYS_FILESIZE:
+			break;
+		case SYS_READ:
+			f->R.rax = read((int)f->R.rdi, (void*)f->R.rsi, (unsigned)f->R.rdx);
+			break;
 		case SYS_WRITE:
 			f->R.rax = write((int)f->R.rdi, (const void*)f->R.rsi, (unsigned)f->R.rdx);
 			break;
@@ -81,7 +82,6 @@ syscall_handler (struct intr_frame *f UNUSED) {
 
 }
 
-
 void halt (void){
 	power_off();
 	return -1;
@@ -94,6 +94,19 @@ void exit (int status)
 	thread_exit();
 }
 
+int read(int fd, void *buffer, unsigned size)
+{
+	if(fd == 0)
+	{
+		input_getc();
+	}
+	return -1;
+	// else
+	// {
+	// 	file_read();
+	// }
+}
+
 
 int write(int fd, const void *buffer, unsigned size)
 {
@@ -103,4 +116,8 @@ int write(int fd, const void *buffer, unsigned size)
 		return size;
 	}
 	return -1;
+	// else
+	// {
+	// 	file_write();
+	// }
 }

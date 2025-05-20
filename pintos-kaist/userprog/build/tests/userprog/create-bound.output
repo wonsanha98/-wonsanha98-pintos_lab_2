@@ -4,7 +4,7 @@ Kernel command line: -q -f put create-bound run create-bound
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  130,867,200 loops/s.
+Calibrating timer...  215,859,200 loops/s.
 hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 105 sector (52 kB) disk, model "QEMU HARDDISK", serial "QM00003"
@@ -13,13 +13,16 @@ Boot complete.
 Putting 'create-bound' into the file system...
 Executing 'create-bound':
 (create-bound) begin
+(create-bound) create("quux.dat"): 1
+(create-bound) end
+create-bound: exit(0)
 Execution of 'create-bound' complete.
-Timer: 392 ticks
-Thread: 32 idle ticks, 361 kernel ticks, 0 user ticks
+Timer: 458 ticks
+Thread: 36 idle ticks, 422 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 238 writes
 hd1:0: 105 reads, 0 writes
-Console: 825 characters output
+Console: 903 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...
