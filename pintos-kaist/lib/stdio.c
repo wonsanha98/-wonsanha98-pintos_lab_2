@@ -426,13 +426,10 @@ not_a_flag:
 	return format;
 }
 
-/* Performs an integer conversion, writing output to OUTPUT with
-   auxiliary data AUX.  The integer converted has absolute value
-   VALUE.  If IS_SIGNED is true, does a signed conversion with
-   NEGATIVE indicating a negative value; otherwise does an
-   unsigned conversion and ignores NEGATIVE.  The output is done
-   according to the provided base B.  Details of the conversion
-   are in C. */
+/* 정수 변환을 수행하며, 출력은 OUTPUT에 보조 데이터 AUX와 함께 기록된다.
+변환되는 정수는 절대값이 VALUE이며, IS_SIGNED가 true인 경우 NEGATIVE가 음수 여부를 나타내는 부호 있는 변환을 수행한다.
+그 외에는 부호 없는 변환을 수행하며 NEGATIVE는 무시된다. 출력은 지정된 진수 B에 따라 이루어진다.
+변환의 세부 사항은 C에 정의되어 있다.. */
 static void
 format_integer (uintmax_t value, bool is_signed, bool negative,
 		const struct integer_base *b,

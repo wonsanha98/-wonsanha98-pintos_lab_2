@@ -10,9 +10,8 @@ struct file {
 	bool deny_write;            /* file_deny_write() 함수가 호출 되었는지, Has file_deny_write() been called? */
 };
 
-/* Opens a file for the given INODE, of which it takes ownership,
- * and returns the new file.  Returns a null pointer if an
- * allocation fails or if INODE is null. */
+/* 주어진 INODE에 대해 파일을 열고, 해당 INODE의 소유권을 가져온 후 새 파일을 반환한다.
+할당에 실패하거나 INODE가 null인 경우 null 포인터를 반환한다. */
 struct file *
 file_open (struct inode *inode) {
 	struct file *file = calloc (1, sizeof *file);
@@ -86,13 +85,10 @@ file_read_at (struct file *file, void *buffer, off_t size, off_t file_ofs) {
 	return inode_read_at (file->inode, buffer, size, file_ofs);
 }
 
-/* Writes SIZE bytes from BUFFER into FILE,
- * starting at the file's current position.
- * Returns the number of bytes actually written,
- * which may be less than SIZE if end of file is reached.
- * (Normally we'd grow the file in that case, but file growth is
- * not yet implemented.)
- * Advances FILE's position by the number of bytes read. */
+/* BUFFER로부터 SIZE 바이트를 FILE의 현재 위치에서부터 파일에 기록한다.
+실제로 기록된 바이트 수를 반환하며, 파일 끝에 도달한 경우 SIZE보다 작을 수 있다.
+(일반적으로 이 경우 파일을 확장하지만, 파일 확장은 아직 구현되지 않았다.)
+파일 포인터는 읽은 바이트 수만큼 전진한다. */
 off_t
 file_write (struct file *file, const void *buffer, off_t size) {
 	off_t bytes_written = inode_write_at (file->inode, buffer, size, file->pos);

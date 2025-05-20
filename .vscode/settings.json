@@ -12,6 +12,21 @@
         "process.h": "c",
         "intrinsic.h": "c",
         "interrupt.h": "c",
-        "flags.h": "c"
+        "flags.h": "c",
+        "lib.h": "c",
+        "random.h": "c",
+        "stddef.h": "c",
+        "debug.h": "c",
+        "loader.h": "c",
+        "syscall-nr.h": "c",
+        "exception": "c",
+        "fstream": "c",
+        "iosfwd": "c",
+        "new": "c",
+        "ostream": "c",
+        "sstream": "c",
+        "streambuf": "c",
+        "*.inc": "c",
+        "syscall.h": "c"
     }
 }

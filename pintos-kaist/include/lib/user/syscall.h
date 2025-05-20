@@ -5,22 +5,22 @@
 #include <debug.h>
 #include <stddef.h>
 
-/* Process identifier. */
+/* 프로세스 식별자 */
 typedef int pid_t;
 #define PID_ERROR ((pid_t) -1)
 
-/* Map region identifier. */
+/* 메모리 매핑 영역 식별자. */
 typedef int off_t;
 #define MAP_FAILED ((void *) NULL)
 
-/* Maximum characters in a filename written by readdir(). */
+/*readdir()에 의해 작성되는 파일 이름의 최대 문자 수. */
 #define READDIR_MAX_LEN 14
 
-/* Typical return values from main() and arguments to exit(). */
+/* main() 함수의 일반적인 반환값과 exit() 함수의 인자값. */
 #define EXIT_SUCCESS 0          /* Successful execution. */
 #define EXIT_FAILURE 1          /* Unsuccessful execution. */
 
-/* Projects 2 and later. */
+/*프로젝트 2 및 이후 단계. */
 void halt (void) NO_RETURN;
 void exit (int status) NO_RETURN;
 pid_t fork (const char *thread_name);

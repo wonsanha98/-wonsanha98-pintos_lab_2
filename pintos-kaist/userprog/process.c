@@ -53,7 +53,12 @@ process_create_initd (const char *file_name) { //run_task에서 파라미터에
 
 	/* FILE_NAME을 실행할 새로운 스레드를 생성하라 */
 	//initd 를 실행하는 스레드를 생성
-	tid = thread_create (file_name, PRI_DEFAULT, initd, fn_copy);
+
+	char *token;
+	char *strl;
+	token = strtok_r (file_name, " ", &strl);
+	
+	tid = thread_create (token, PRI_DEFAULT, initd, fn_copy);
 	if (tid == TID_ERROR)
 		palloc_free_page (fn_copy);			//page 할당을 해제한다.
 	return tid;								//스레드 id를 반환한다.
@@ -73,11 +78,11 @@ initd (void *f_name) {
 	NOT_REACHED ();
 }
 
-/* Clones the current process as `name`. Returns the new process's thread id, or
- * TID_ERROR if the thread cannot be created. */
+/* 현재 프로세스를 name으로 복제한다. 새 프로세스의 스레드 ID를 반환하며,
+스레드를 생성할 수 없으면 TID_ERROR를 반환한다.~ */
 tid_t
 process_fork (const char *name, struct intr_frame *if_ UNUSED) {
-	/* Clone current thread to new thread.*/
+	/* 현재 스레드를 새로운 스레드로 복제한다.*/
 	return thread_create (name,
 			PRI_DEFAULT, __do_fork, thread_current ());
 }   
@@ -114,10 +119,9 @@ duplicate_pte (uint64_t *pte, void *va, void *aux) {
 }
 #endif
 
-/* A thread function that copies parent's execution context.
- * Hint) parent->tf does not hold the userland context of the process.
- *       That is, you are required to pass second argument of process_fork to
- *       this function. */
+/* 부모의 실행 컨텍스트를 복사하는 스레드 함수.
+힌트) parent->tf는 프로세스의 사용자 영역 컨텍스트를 포함하고 있지 않다.
+즉, 이 함수에 process_fork의 두 번째 인자를 전달해야 한다. */
 static void
 __do_fork (void *aux) {
 	struct intr_frame if_;
@@ -184,7 +188,6 @@ process_exec (void *f_name) { //실행하려는 바이너리 파일의 이름?
 	token = strtok_r (file_name, " ", &strl);
 
 
-
 	success = load (file_name, &_if);
 
 
@@ -197,37 +200,27 @@ process_exec (void *f_name) { //실행하려는 바이너리 파일의 이름?
 		token = strtok_r(NULL, " ", &strl);  // 다음 호출
 	}
 	argv[argc] = NULL;
-	_if.R.rdi = argc + 1;   // USER_STACK
+	_if.R.rdi = argc;   // USER_STACK
     
 
     char *str[99];
-	uint64_t new_rsp = (uint64_t)_if.rsp; //값을 뺄때 *8한 값이 빼진다.
-
-
-	// for(int i = 0; i < argc; i++){
-	// 	uint64_t b = strlen(argv[i])+1;
-	// 	new_rsp = new_rsp - b;
-	// 	str[i] = new_rsp;
-	// 	strlcpy(str[i], argv[i], b);
-	// }
-
 
     for(int i = 0; i < argc; i++){
 		uintptr_t b = strlen(argv[i])+1;
 		_if.rsp = _if.rsp - b;
        	str[i] = _if.rsp;
-		strlcpy(str[i], argv[i], b);
+		memcpy(str[i], argv[i], b);
 	   //rsp 갱신이 필요
 	}
 
 
     //패딩 정리하기
 	//값을 넣어줘야 하는지 모르겠음
-    //패딩처리 구문
+    //패딩처리 구문~
     uintptr_t num = _if.rsp;
     _if.rsp = _if.rsp & ~0x7;
    	uint8_t check_num = num - (_if.rsp);
-   	memset(_if.rsp, 0 , check_num);
+   	memset(_if.rsp, (uint8_t)0 , check_num);
     // *( uint8_t*)if_->rsp = 0; 확실하지않음
 
 	//0x4747ffe0	argv[4]	0	char *
@@ -239,26 +232,20 @@ process_exec (void *f_name) { //실행하려는 바이너리 파일의 이름?
 	// *(char *)_if.rsp = 0;
     
 	char **str2;
-    for(int i =argc-1; i >= 0; i--){
+    for(int i = argc-1; i >= 0; i--){
 		_if.rsp = _if.rsp - 0x8;
         str2 = _if.rsp;
-		*str2 = str[i];
+		memcpy(str2, &str[i], 8);
 	}
 
+	_if.R.rsi = (uint64_t)_if.rsp;
+
+
     _if.rsp = _if.rsp - 0x8;
-	*(char *) _if.rsp = 0;
-
-    _if.R.rsi = &argv[0];
-     
+	memset((char *)_if.rsp, 0 , 8);
+	// *(char *) _if.rsp = 0;
 
 
-	 /*/* BUF의 SIZE 바이트를 16바이트씩 한 줄로 묶어 16진수 형식으로 콘솔에 출력합니다.
-   각 줄에는 숫자 오프셋이 포함되며, BUF의 첫 바이트를 기준으로 OFS에서 시작합니다.
-   ASCII가 true일 경우, 해당하는 ASCII 문자도 함께 출력됩니다. */
-// void
-// hex_dump (uintptr_t ofs, const void *buf_, size_t size, bool ascii) {*/
-  
-	hex_dump(0, &argv[0] , USER_STACK - _if.rsp , true);
 
 	/* 불로오기를 실패하면 프로그램을 종료한다. */
 	palloc_free_page (file_name);
@@ -287,20 +274,20 @@ process_wait (tid_t child_tid UNUSED) {
 	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
-	while(1)
-	{
+	for(long long i = 0; i < 800000000; i++){
 	}
+
 	return -1;
 }
 
-/* Exit the process. This function is called by thread_exit (). */
+/* 프로세스를 종료한다. 이 함수는 thread_exit()에 의해 호출된다. */
 void
 process_exit (void) {
 	struct thread *curr = thread_current ();
-	/* TODO: Your code goes here.
-	 * TODO: Implement process termination message (see
-	 * TODO: project2/process_termination.html).
-	 * TODO: We recommend you to implement process resource cleanup here. */
+	/* TODO: 여기에 코드를 작성하세요.
+	   TODO: 프로세스 종료 메시지를 구현하세요 (참고: project2/process_termination.html).
+       TODO: 이곳에서 프로세스 자원 정리를 구현하는 것을 권장합니다. */	
+
 
 	process_cleanup ();
 }

@@ -70,7 +70,7 @@ main (void) {
 	uint64_t mem_end;
 	char **argv;
 
-	/* Clear BSS and get machine's RAM size. */
+	/* BSS 영역을 초기화하고 머신의 RAM 크기를 가져온다. */
 	bss_init ();
 
 	/* Break command line into arguments and parse options. */
@@ -101,7 +101,7 @@ main (void) {
 	exception_init ();
 	syscall_init ();
 #endif
-	/* Start thread scheduler and enable interrupts. */
+	/* 스레드 스케줄러를 시작하고 인터럽트를 활성화한다. */
 	thread_start ();
 	serial_init_queue ();
 	timer_calibrate ();
@@ -333,8 +333,7 @@ usage (void) {
 }
 
 
-/* Powers down the machine we're running on,
-   as long as we're running on Bochs or QEMU. */
+/* Bochs나 QEMU에서 실행 중인 경우, 현재 실행 중인 머신의 전원을 종료한다. */
 void
 power_off (void) {
 #ifdef FILESYS

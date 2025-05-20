@@ -82,6 +82,7 @@ static tid_t allocate_tid (void);
 // setup temporal gdt first.
 static uint64_t gdt[3] = { 0, 0x00af9a000000ffff, 0x00cf92000000ffff };
 
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -207,8 +208,8 @@ thread_create (const char *name, int priority,
 	/* 스레드가 스케줄되었다면 kernel_thread를 호출한다.
 	 * Note) rdi is 1st argument, and rsi is 2nd argument. */
 	t->tf.rip = (uintptr_t) kernel_thread;	//549825050261 커널 스레드의 포인터?
-	t->tf.R.rdi = (uint64_t) function;		//첫 번째 인자, 함수?
-	t->tf.R.rsi = (uint64_t) aux;			//두 번째 인자
+	t->tf.R.rdi = (uint64_t) function;		//첫 번째 인자, 함수? (void *) 0x80042b6000? 
+	t->tf.R.rsi = (uint64_t) aux;			//두 번째 인자, 549825765376?
 	t->tf.ds = SEL_KDSEG;
 	t->tf.es = SEL_KDSEG;
 	t->tf.ss = SEL_KDSEG;
@@ -305,8 +306,8 @@ thread_exit (void) {
 	process_exit ();
 #endif
 
-	/* Just set our status to dying and schedule another process.
-	   We will be destroyed during the call to schedule_tail(). */
+	/* 단지 현재 상태를 'dying'으로 설정하고 다른 프로세스를 스케줄한다.
+	   우리는 schedule_tail() 호출 중에 제거될 것이다. */
 	intr_disable ();
 	do_schedule (THREAD_DYING);
 	NOT_REACHED ();
@@ -317,9 +318,10 @@ thread_exit (void) {
 // 현재실행중인 쓰레드를 준비상태로 ready_list의 마지막에 넣는다.
 void
 thread_yield (void) {
-	if(thread_current() != idle_thread)
+	struct thread *curr = thread_current ();
+
+	if(curr != idle_thread)
 	{
-		struct thread *curr = thread_current ();
 		enum intr_level old_level;
 
 		ASSERT (!intr_context ());
@@ -328,8 +330,9 @@ thread_yield (void) {
 		if (curr != idle_thread)
 			list_insert_ordered(&ready_list, &curr->elem, priority_more, NULL);
 		do_schedule (THREAD_READY);
-		intr_set_level (old_level);
+		intr_set_level (old_level);	
 	}
+	
 }
 
 // 현재 쓰레드를 블록하고  sleep_list로 이동시킨다.

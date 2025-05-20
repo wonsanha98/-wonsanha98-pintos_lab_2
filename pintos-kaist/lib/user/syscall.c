@@ -29,18 +29,18 @@ static __inline int64_t syscall (uint64_t num_, uint64_t a1_, uint64_t a2_,
 	return ret;
 }
 
-/* Invokes syscall NUMBER, passing no arguments, and returns the
-   return value as an `int'. */
+/* 시스템 콜 번호 NUMBER를 호출하며 인자는 전달하지 않고,
+그 반환 값을 정수로 반환한다. `int'. */
 #define syscall0(NUMBER) ( \
 		syscall(((uint64_t) NUMBER), 0, 0, 0, 0, 0, 0))
 
-/* Invokes syscall NUMBER, passing argument ARG0, and returns the
-   return value as an `int'. */
+/* 시스템 콜 번호 NUMBER를 호출하면서 인자 ARG0을 전달하고,
+그 반환 값을 정수로 반환한다. `int'. */
 #define syscall1(NUMBER, ARG0) ( \
 		syscall(((uint64_t) NUMBER), \
 			((uint64_t) ARG0), 0, 0, 0, 0, 0))
-/* Invokes syscall NUMBER, passing arguments ARG0 and ARG1, and
-   returns the return value as an `int'. */
+/* 시스템 콜 번호 NUMBER를 호출하면서 인자 ARG0과 ARG1을 전달하고,
+그 반환 값을 int형으로 반환한다. */
 #define syscall2(NUMBER, ARG0, ARG1) ( \
 		syscall(((uint64_t) NUMBER), \
 			((uint64_t) ARG0), \
@@ -69,13 +69,13 @@ static __inline int64_t syscall (uint64_t num_, uint64_t a1_, uint64_t a2_,
 			((uint64_t) ARG4), \
 			0))
 void
-halt (void) {
+halt (void) {	//power_off()대신 사용해야 하는 것?
 	syscall0 (SYS_HALT);
 	NOT_REACHED ();
 }
 
 void
-exit (int status) {
+exit (int status) {	//현재 동작중인 유저 프로그램을 종료한다.
 	syscall1 (SYS_EXIT, status);
 	NOT_REACHED ();
 }
