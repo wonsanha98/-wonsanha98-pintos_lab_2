@@ -176,7 +176,7 @@ void
 supplemental_page_table_init (struct supplemental_page_table *spt UNUSED) {
 }
 
-/* Copy supplemental page table from src to dst */
+/* 보조 페이지 테이블을 src에서 dst로 복사합니다 */
 bool
 supplemental_page_table_copy (struct supplemental_page_table *dst UNUSED,
 		struct supplemental_page_table *src UNUSED) {

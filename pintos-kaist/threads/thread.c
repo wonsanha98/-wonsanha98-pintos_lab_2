@@ -11,6 +11,8 @@
 #include "threads/synch.h"
 #include "threads/vaddr.h"
 #include "intrinsic.h"
+#include "userprog/syscall.h"
+
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -38,6 +40,7 @@ static struct thread *initial_thread;
 /* allocate_tid()에서 사용하는 락. */
 static struct lock tid_lock;
 
+
 /* 삭제 요청된 스레드 목록 */
 static struct list destruction_req;
 
@@ -54,6 +57,7 @@ static unsigned thread_ticks; /* 마지막 yield 이후 경과된 timer tick 수
    true면 multi-level feedback queue 스케줄러 사용.
    이는 커널 명령줄 옵션 "-o mlfqs"로 제어됩니다. */
 bool thread_mlfqs;
+
 
 static void kernel_thread (thread_func *, void *aux);
 
@@ -112,6 +116,7 @@ thread_init (void) {
 
 	/* Init the globla thread context */
 	lock_init (&tid_lock);			// cpu 자원 쓰는 것을 선점하고 관리하기 위한 lock
+	
 	list_init (&ready_list);
 	list_init (&destruction_req);	//쓰레드 폐기 요청 리스트
 	list_init (&sleep_list);
@@ -215,6 +220,13 @@ thread_create (const char *name, int priority,
 	t->tf.ss = SEL_KDSEG;
 	t->tf.cs = SEL_KCSEG;
 	t->tf.eflags = FLAG_IF;
+
+	for(int i = 0; i < 64; i++)
+	{
+		t->fd_table[i] == NULL;
+	}
+	t->fd = -1;
+	//0 과 1을 따로 할당해주는 부분을 넣어야 하는가?
 
 	/* ready 큐에 추가한다. */
 	thread_unblock (t);

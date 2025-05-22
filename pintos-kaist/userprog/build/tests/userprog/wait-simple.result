@@ -13,6 +13,7 @@ Differences in `diff -u' format:
 - (child-simple) run
 - child-simple: exit(81)
 - (wait-simple) wait(exec()) = 81
-+ (wait-simple) wait(exec()) = 4
++ (wait-simple) wait(exec()) = 2
   (wait-simple) end
-  wait-simple: exit(0)
+- wait-simple: exit(0)
++ child-simple: exit(0)

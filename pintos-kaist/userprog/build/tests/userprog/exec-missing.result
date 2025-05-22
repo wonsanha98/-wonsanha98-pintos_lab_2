@@ -1,25 +1,20 @@
 FAIL
-Test output failed to match any acceptable form.
-
-Acceptable output:
-  (exec-missing) begin
-  load: no-such-file: open failed
-  exec-missing: exit(-1)
-Differences in `diff -u' format:
-  (exec-missing) begin
-- load: no-such-file: open failed
-- exec-missing: exit(-1)
-+ (exec-missing) exec("no-such-file"): 3
-+ (exec-missing) end
-+ exec-missing: exit(0)
-Acceptable output:
-  (exec-missing) begin
-  (exec-missing) exec("no-such-file"): -1
-  exec-missing: exit(-1)
-Differences in `diff -u' format:
-  (exec-missing) begin
-- (exec-missing) exec("no-such-file"): -1
-- exec-missing: exit(-1)
-+ (exec-missing) exec("no-such-file"): 3
-+ (exec-missing) end
-+ exec-missing: exit(0)
+Kernel panic in run: PANIC at ../../threads/thread.c:297 in thread_current(): assertion `is_thread (t)' failed.
+Call stack: 0x8004217ede 0x8004207088 0x800420a4b5 0x800421b1e3 0x800421b3b0 0x800421b394 0x800421542a 0x800421b243 0x80042153e1 0x800421c9d1 0x8004208ce8 0x8004209106 0x800421b949 0x800421ceb5 0x800421cbd8 0x800421ca59
+Translation of call stack:
+0x0000008004217ede: debug_panic (lib/kernel/debug.c:32)
+0x0000008004207088: thread_current (threads/thread.c:298)
+0x000000800420a4b5: lock_held_by_current_thread (threads/synch.c:256)
+0x000000800421b1e3: console_locked_by_current_thread (lib/kernel/console.c:101 (discriminator 2))
+0x000000800421b3b0: putchar_have_lock (lib/kernel/console.c:160)
+0x000000800421b394: vprintf_helper (lib/kernel/console.c:154)
+0x000000800421542a: __vprintf (lib/stdio.c:154)
+0x000000800421b243: vprintf (lib/kernel/console.c:112)
+0x00000080042153e1: printf (lib/stdio.c:80)
+0x000000800421c9d1: page_fault (userprog/exception.c:150 (discriminator 12))
+0x0000008004208ce8: intr_handler (threads/interrupt.c:352)
+0x0000008004209106: intr_entry (threads/intr-stubs.o:?)
+0x000000800421b949: process_exec (userprog/process.c:232)
+0x000000800421ceb5: exec (userprog/syscall.c:152)
+0x000000800421cbd8: syscall_handler (userprog/syscall.c:88)
+0x000000800421ca59: no_sti (userprog/syscall-entry.o:?)

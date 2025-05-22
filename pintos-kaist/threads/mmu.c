@@ -143,7 +143,7 @@ pdp_for_each (uint64_t *pdp,
 	return true;
 }
 
-/* Apply FUNC to each available pte entries including kernel's. */
+/* 사용 가능한 모든 PTE 항목(커널의 항목 포함)에 FUNC을 적용합니다 */
 bool
 pml4_for_each (uint64_t *pml4, pte_for_each_func *func, void *aux) {
 	for (unsigned i = 0; i < PGSIZE / sizeof(uint64_t *); i++) {
@@ -206,10 +206,8 @@ pml4_activate (uint64_t *pml4) {
 	lcr3 (vtop (pml4 ? pml4 : base_pml4));
 }
 
-/* Looks up the physical address that corresponds to user virtual
- * address UADDR in pml4.  Returns the kernel virtual address
- * corresponding to that physical address, or a null pointer if
- * UADDR is unmapped. */
+/* pml4에서 사용자 가상 주소 UADDR에 대응하는 물리 주소를 조회합니다.
+그 물리 주소에 해당하는 커널 가상 주소를 반환하며, UADDR가 매핑되지 않은 경우에는 null 포인터를 반환합니다. */
 void *
 pml4_get_page (uint64_t *pml4, const void *uaddr) {
 	ASSERT (is_user_vaddr (uaddr));
@@ -221,14 +219,10 @@ pml4_get_page (uint64_t *pml4, const void *uaddr) {
 	return NULL;
 }
 
-/* Adds a mapping in page map level 4 PML4 from user virtual page
- * UPAGE to the physical frame identified by kernel virtual address KPAGE.
- * UPAGE must not already be mapped. KPAGE should probably be a page obtained
- * from the user pool with palloc_get_page().
- * If WRITABLE is true, the new page is read/write;
- * otherwise it is read-only.
- * Returns true if successful, false if memory allocation
- * failed. */
+/* PML4(페이지 맵 레벨 4)에 사용자 가상 페이지 UPAGE에서 커널 가상 주소 KPAGE로 식별되는 물리 프레임에 대한 매핑을 추가합니다.
+UPAGE는 이미 매핑되어 있지 않아야 합니다. KPAGE는 보통 palloc_get_page()를 통해 사용자 풀에서 얻은 페이지여야 합니다.
+WRITABLE이 true이면 새 페이지는 읽기/쓰기 가능하며, 그렇지 않으면 읽기 전용으로 설정됩니다.
+성공 시 true를 반환하고, 메모리 할당 실패 시 false를 반환합니다. */
 bool
 pml4_set_page (uint64_t *pml4, void *upage, void *kpage, bool rw) {
 	ASSERT (pg_ofs (upage) == 0);

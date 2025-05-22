@@ -4,8 +4,8 @@ Kernel command line: -q -f put read-normal put sample.txt run read-normal
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  214,220,800 loops/s.
-hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+Calibrating timer...  235,520,000 loops/s.
+hd0:0: detected 321 sector (160 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 105 sector (52 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 Formatting file system...done.
@@ -15,24 +15,23 @@ Putting 'sample.txt' into the file system...
 Executing 'read-normal':
 (read-normal) begin
 (read-normal) open "sample.txt" for verification
-Page fault at 0x423b038: not present error reading page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421e459
- cr2=000000000423b038 error=               0
-rax 000000000423b038 rbx 0000000000000000 rcx 0000000000403686 rdx 000000800421e403
-rsp 000000800423fed0 rbp 000000800423fee0 rsi 0000000000000000 rdi 000000000423b038
-rip 000000800421e459 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000212 r12 000000800421c965 r13 0000000000000000 r14 0000000000000000
+Interrupt 0x0d (#GP General Protection Exception) at rip=800421fd72
+ cr2=0000000000000000 error=               0
+rax 742e656c706d6173 rbx 0000000000000000 rcx 0000000000000010 rdx 000000800421e996
+rsp 0000008004240e70 rbp 0000008004240e80 rsi 0000000000000000 rdi 742e656c706d6173
+rip 000000800421fd72 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000212 r12 000000800421cb30 r13 0000000000000000 r14 0000000000000000
 r15 0000000000000000 rflags 00000202
 es: 001b ds: 001b cs: 0008 ss: 0010
 Kernel PANIC at ../../userprog/exception.c:92 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217eb6 0x800421c6b0 0x800421c82f 0x8004208cc0 0x80042090de 0x800421ccca 0x800421ca61 0x800421c8a4 0x400766 0x400981 0x400111 0x40016f 0x400c10.
+Call stack: 0x8004217ede 0x800421c865 0x8004208ce8 0x8004209106 0x800421ec0f 0x800421e9bc 0x800421d0fd 0x800421cc7f 0x800421ca59 0x400939 0x400111 0x40016f 0x400c10.
 The `backtrace' program can make call stacks useful.
 Read "Backtraces" in the "Debugging Tools" chapter
 of the Pintos documentation for more information.
-Timer: 444 ticks
-Thread: 45 idle ticks, 340 kernel ticks, 59 user ticks
+Timer: 326 ticks
+Thread: 33 idle ticks, 284 kernel ticks, 9 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 118 reads, 248 writes
 hd1:0: 105 reads, 0 writes
-Console: 1898 characters output
+Console: 1834 characters output
 Key

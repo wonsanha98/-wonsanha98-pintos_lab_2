@@ -37,10 +37,10 @@
 /* User stack start */
 #define USER_STACK 0x47480000
 
-/* Returns true if VADDR is a user virtual address. */
+/* VADDR가 사용자 가상 주소인 경우 true를 반환합니다. */
 #define is_user_vaddr(vaddr) (!is_kernel_vaddr((vaddr))) //주어진 주소 vaddr가 사용자 가상 메모리 범위에 속하면 true를 반환, vaddr < KERN_BASE
 
-/* Returns true if VADDR is a kernel virtual address. */
+/* "VADDR가 커널 가상 주소이면 true를 반환합니다 */
 #define is_kernel_vaddr(vaddr) ((uint64_t)(vaddr) >= KERN_BASE)	//vaddr가 커널 가상 메모리 범위에 속하면 true를 반환, vaddr >= KERN_BASE
 
 // FIXME: add checking

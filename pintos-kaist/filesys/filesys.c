@@ -8,13 +8,15 @@
 #include "filesys/directory.h"
 #include "devices/disk.h"
 
-/* The disk that contains the file system. */
+/* 파일 시스템이 저장된 디스크입니다. */
 struct disk *filesys_disk;
 
 static void do_format (void);
 
-/* Initializes the file system module.
- * If FORMAT is true, reformats the file system. */
+/*
+ * 파일 시스템 모듈을 초기화합니다.
+ * FORMAT이 true이면, 파일 시스템을 다시 포맷합니다.
+ */
 void
 filesys_init (bool format) {
 	filesys_disk = disk_get (0, 1);

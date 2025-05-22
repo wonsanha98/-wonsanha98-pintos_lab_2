@@ -34,8 +34,11 @@ file_reopen (struct file *file) {
 	return file_open (inode_reopen (file->inode));
 }
 
-/* Duplicate the file object including attributes and returns a new file for the
- * same inode as FILE. Returns a null pointer if unsuccessful. */
+/*
+ * 파일 객체를 속성까지 포함하여 복제하며,
+ * FILE과 동일한 inode를 참조하는 새로운 파일을 반환합니다.
+ * 복제에 실패하면 null 포인터를 반환합니다.
+ */
 struct file *
 file_duplicate (struct file *file) {
 	struct file *nfile = file_open (inode_reopen (file->inode));
@@ -63,11 +66,9 @@ file_get_inode (struct file *file) {
 	return file->inode;
 }
 
-/* Reads SIZE bytes from FILE into BUFFER,
- * starting at the file's current position.
- * Returns the number of bytes actually read,
- * which may be less than SIZE if end of file is reached.
- * Advances FILE's position by the number of bytes read. */
+/* 파일의 현재 위치에서 시작하여 FILE로부터 BUFFER로 SIZE 바이트를 읽어옵니다.
+실제로 읽힌 바이트 수를 반환하며, 파일의 끝(EOF)에 도달한 경우 SIZE보다 작을 수 있습니다.
+읽힌 바이트 수만큼 FILE의 위치를 앞으로 이동시킵니다. */
 off_t
 file_read (struct file *file, void *buffer, off_t size) {
 	off_t bytes_read = inode_read_at (file->inode, buffer, size, file->pos);

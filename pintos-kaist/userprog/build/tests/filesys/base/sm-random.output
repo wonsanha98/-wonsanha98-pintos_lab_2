@@ -4,8 +4,8 @@ Kernel command line: -q -f put sm-random run sm-random
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  183,296,000 loops/s.
-hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+Calibrating timer...  235,520,000 loops/s.
+hd0:0: detected 321 sector (160 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 110 sector (55 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 Formatting file system...done.
@@ -14,26 +14,13 @@ Putting 'sm-random' into the file system...
 Executing 'sm-random':
 (sm-random) begin
 (sm-random) create "bazzle"
-(sm-random) open "bazzle"
-(sm-random) write "bazzle" in random order
-Page fault at 0x423b040: not present error writing page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421e50e
- cr2=000000000423b040 error=               2
-rax 000000000423b038 rbx 0000000000000000 rcx 0000000000403dc2 rdx 00000000000000b6
-rsp 000000800423fed0 rbp 000000800423fee0 rsi 00000000000000b6 rdi 000000000423b038
-rip 000000800421e50e r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000212 r12 000000800421c965 r13 0000000000000000 r14 0000000000000000
-r15 0000000000000000 rflags 00000202
-es: 001b ds: 001b cs: 0008 ss: 0010
-Kernel PANIC at ../../userprog/exception.c:92 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217eb6 0x800421c6b0 0x800421c82f 0x8004208cc0 0x80042090de 0x800421cd6e 0x800421cb0c 0x800421c8a4 0x4002a4 0x401142 0x40118b.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 499 ticks
-Thread: 42 idle ticks, 440 kernel ticks, 17 user ticks
+Execution of 'sm-random' complete.
+Timer: 414 ticks
+Thread: 34 idle ticks, 380 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 109 reads, 264 writes
+hd0:1: 104 reads, 263 writes
 hd1:0: 110 reads, 0 writes
-Console: 1858 characters output
-Key
+Console: 836 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

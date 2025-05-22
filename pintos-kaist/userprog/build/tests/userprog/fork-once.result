@@ -13,6 +13,7 @@ Differences in `diff -u' format:
 - (fork-once) child run
 - child: exit(81)
 - (fork-once) Parent: child exit status is 81
-+ (fork-once) Parent: child exit status is 4
++ (fork-once) Parent: child exit status is 2
   (fork-once) end
-  fork-once: exit(0)
+- fork-once: exit(0)
++ child: exit(0)

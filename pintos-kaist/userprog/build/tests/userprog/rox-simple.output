@@ -4,8 +4,8 @@ Kernel command line: -q -f put rox-simple run rox-simple
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  209,715,200 loops/s.
-hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+Calibrating timer...  225,280,000 loops/s.
+hd0:0: detected 321 sector (160 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 103 sector (51 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 Formatting file system...done.
@@ -14,16 +14,23 @@ Putting 'rox-simple' into the file system...
 Executing 'rox-simple':
 (rox-simple) begin
 (rox-simple) open "rox-simple"
-(rox-simple) read "rox-simple"
-(rox-simple) read "rox-simple": FAILED
-rox-simple: exit(1)
-Execution of 'rox-simple' complete.
-Timer: 538 ticks
-Thread: 49 idle ticks, 478 kernel ticks, 11 user ticks
+Interrupt 0x0d (#GP General Protection Exception) at rip=800421fd72
+ cr2=0000000000000000 error=               0
+rax 706d69732d786f72 rbx 0000000000000000 rcx 0000000000000010 rdx 000000800421e996
+rsp 0000008004240e70 rbp 0000008004240e80 rsi 0000000000000000 rdi 706d69732d786f72
+rip 000000800421fd72 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000216 r12 000000800421cb30 r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000202
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:92 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x8004217ede 0x800421c865 0x8004208ce8 0x8004209106 0x800421ec0f 0x800421e9bc 0x800421d0fd 0x800421cc7f 0x800421ca59 0x400121 0x400252 0x400cf3.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 287 ticks
+Thread: 35 idle ticks, 243 kernel ticks, 9 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 83 reads, 234 writes
 hd1:0: 103 reads, 0 writes
-Console: 935 characters output
-Keyboard: 0 keys pressed
-Exception: 0 page faults
-Powering off...
+Console: 1741 characters output
+Key

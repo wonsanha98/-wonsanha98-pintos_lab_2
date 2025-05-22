@@ -83,13 +83,24 @@ initd (void *f_name) {
 tid_t
 process_fork (const char *name, struct intr_frame *if_ UNUSED) {
 	/* 현재 스레드를 새로운 스레드로 복제한다.*/
-	return thread_create (name,
-			PRI_DEFAULT, __do_fork, thread_current ());
-}   
+	struct thread *curr = thread_current();
+	memcpy(&curr->_if, if_, sizeof(struct intr_frame));
+	//if_ 복사 성공
+	int tid_t = thread_create (name, PRI_DEFAULT, __do_fork, thread_current ());	
+	
+	if(tid_t == -1)
+	{
+		return TID_ERROR;
+	}
+	else
+	{
+		return tid_t;
+	}
+	}  
 
 #ifndef VM
-/* Duplicate the parent's address space by passing this function to the
- * pml4_for_each. This is only for the project 2. */
+/* 이 함수를 `pml4_for_each`에 전달하여 부모 프로세스의 주소 공간을 복제합니다.
+ * 이 기능은 프로젝트 2에서만 사용됩니다. */
 static bool
 duplicate_pte (uint64_t *pte, void *va, void *aux) {
 	struct thread *current = thread_current ();
@@ -97,23 +108,39 @@ duplicate_pte (uint64_t *pte, void *va, void *aux) {
 	void *parent_page;
 	void *newpage;
 	bool writable;
+	/* 1. TODO: parent_page가 커널 페이지인 경우, 즉시 반환하세요. */
 
-	/* 1. TODO: If the parent_page is kernel page, then return immediately. */
+	if(!is_user_vaddr(va))
+	{
+		return true;
+	}
 
-	/* 2. Resolve VA from the parent's page map level 4. */
+	/* 2. 부모의 페이지 맵 레벨 4(PML4)에서 VA(가상 주소)를 해석합니다. */
 	parent_page = pml4_get_page (parent->pml4, va);
 
-	/* 3. TODO: Allocate new PAL_USER page for the child and set result to
+	if(parent_page == NULL)
+	{	
+		return false;
+	}
+
+	newpage = palloc_get_page(PAL_USER);
+
+	/* 3. TODO: 자식 프로세스를 위해 새로운 PAL_USER 페이지를 할당하고, 결과를 변수에 설정하세요.
 	 *    TODO: NEWPAGE. */
+	/* TODO: 부모의 페이지를 새 페이지로 복사하고,
+	 * TODO: 부모의 페이지가 쓰기 가능한지 확인한 후,
+ 	 * TODO: 그 결과에 따라 WRITABLE 플래그를 설정하세요.*/
+	memcpy(newpage, parent_page, PGSIZE);
+	writable = is_writable(pte);
 
-	/* 4. TODO: Duplicate parent's page to the new page and
-	 *    TODO: check whether parent's page is writable or not (set WRITABLE
-	 *    TODO: according to the result). */
+	// #define is_writable(pte) (*(pte) & PTE_W) 참고용
 
-	/* 5. Add new page to child's page table at address VA with WRITABLE
-	 *    permission. */
+	/* 5. 자식의 페이지 테이블에 주소 VA에 해당하는 새 페이지를
+	 *    WRITABLE 권한으로 추가하세요. */
 	if (!pml4_set_page (current->pml4, va, newpage, writable)) {
-		/* 6. TODO: if fail to insert page, do error handling. */
+	/* 6. TODO: 페이지 삽입에 실패한 경우, 에러 처리를 수행하세요. */
+		palloc_free_page(newpage);
+		return false;
 	}
 	return true;
 }
@@ -127,14 +154,15 @@ __do_fork (void *aux) {
 	struct intr_frame if_;
 	struct thread *parent = (struct thread *) aux;
 	struct thread *current = thread_current ();
-	/* TODO: somehow pass the parent_if. (i.e. process_fork()'s if_) */
-	struct intr_frame *parent_if;
+	/* TODO: 어떻게든 parent_if를 통과해야 한다. (즉, process_fork() 함수의 if_를) */
+	struct intr_frame *parent_if = &parent->_if;
 	bool succ = true;
 
-	/* 1. Read the cpu context to local stack. */
+	/* 1. CPU 컨텍스트를 로컬 스택으로 읽어온다. */
 	memcpy (&if_, parent_if, sizeof (struct intr_frame));
 
-	/* 2. Duplicate PT */
+	/* 2. 페이지 테이블(PT)을 복제한다. */
+	//페이지 테이블 복제부분이 없음
 	current->pml4 = pml4_create();
 	if (current->pml4 == NULL)
 		goto error;
@@ -149,11 +177,25 @@ __do_fork (void *aux) {
 		goto error;
 #endif
 
-	/* TODO: Your code goes here.
-	 * TODO: Hint) To duplicate the file object, use `file_duplicate`
-	 * TODO:       in include/filesys/file.h. Note that parent should not return
-	 * TODO:       from the fork() until this function successfully duplicates
-	 * TODO:       the resources of parent.*/
+/* TODO: 여기에 여러분의 코드를 작성하세요.
+ * TODO: 힌트) 파일 객체를 복제하려면 include/filesys/file.h에 정의된
+ * TODO:       `file_duplicate` 함수를 사용하세요.
+ * TODO:       주의할 점은, 부모 프로세스는 이 함수가
+ * TODO:       부모의 자원을 성공적으로 복제하기 전까지
+ * TODO:       fork()로부터 반환되어서는 안 됩니다.
+ */
+	for(int i = 0; i < 64; i++)
+	{
+		if(parent->fd_table[i] != NULL)
+		{
+			struct file *new_file = file_duplicate(parent->fd_table[i]);
+			if(new_file == NULL)
+			{
+				succ = false;
+			}
+			current->fd_table[i] = new_file;
+		}
+	}
 
 	process_init ();
 
@@ -163,6 +205,8 @@ __do_fork (void *aux) {
 error:
 	thread_exit ();
 }
+
+
 
 /* 현재 실행 컨텍스트를 f_name으로 전환한다.
  * Returns -1 on fail. */
@@ -191,7 +235,6 @@ process_exec (void *f_name) { //실행하려는 바이너리 파일의 이름?
 	success = load (file_name, &_if);
 
 
-//////////////////////문자열 스택으로 
 	char *argv[99];
 	int argc = 0;
 	while (token != NULL) {
@@ -210,26 +253,15 @@ process_exec (void *f_name) { //실행하려는 바이너리 파일의 이름?
 		_if.rsp = _if.rsp - b;
        	str[i] = _if.rsp;
 		memcpy(str[i], argv[i], b);
-	   //rsp 갱신이 필요
 	}
 
-
-    //패딩 정리하기
-	//값을 넣어줘야 하는지 모르겠음
-    //패딩처리 구문~
     uintptr_t num = _if.rsp;
     _if.rsp = _if.rsp & ~0x7;
    	uint8_t check_num = num - (_if.rsp);
    	memset(_if.rsp, (uint8_t)0 , check_num);
-    // *( uint8_t*)if_->rsp = 0; 확실하지않음
-
-	//0x4747ffe0	argv[4]	0	char *
-    //확실치않음
+ 
     _if.rsp = _if.rsp - 0x8;
 	memset((char *)_if.rsp, 0 , 8);
-
-	// strlcpy(_if.rsp, '0', 8);
-	// *(char *)_if.rsp = 0;
     
 	char **str2;
     for(int i = argc-1; i >= 0; i--){
@@ -243,8 +275,6 @@ process_exec (void *f_name) { //실행하려는 바이너리 파일의 이름?
 
     _if.rsp = _if.rsp - 0x8;
 	memset((char *)_if.rsp, 0 , 8);
-	// *(char *) _if.rsp = 0;
-
 
 
 	/* 불로오기를 실패하면 프로그램을 종료한다. */
@@ -258,22 +288,18 @@ process_exec (void *f_name) { //실행하려는 바이너리 파일의 이름?
 }
 
 
-/* Waits for thread TID to die and returns its exit status.  If
- * it was terminated by the kernel (i.e. killed due to an
- * exception), returns -1.  If TID is invalid or if it was not a
- * child of the calling process, or if process_wait() has already
- * been successfully called for the given TID, returns -1
- * immediately, without waiting.
+/* TID에 해당하는 스레드가 종료될 때까지 기다린 후, 해당 스레드의 종료 상태(exit status)를 반환합니다.
+만약 해당 스레드가 커널에 의해 종료되었다면(즉, 예외로 인해 강제 종료되었다면) -1을 반환합니다.
+TID가 유효하지 않거나, 호출한 프로세스의 자식 프로세스가 아닌 경우, 
+또는 이미 해당 TID에 대해 process_wait()이 성공적으로 호출된 적이 있다면,
+기다리지 않고 즉시 -1을 반환합니다.
  *
- * This function will be implemented in problem 2-2.  For now, it
- * does nothing. */
+ * 이 함수는 문제 2-2에서 구현될 예정입니다.
+현재는 아무 작업도 수행하지 않습니다. */
 int
 process_wait (tid_t child_tid UNUSED) {
 	//추천하는 방법은 process_wait를 구현하기 전에 
 	//이곳에 무한 루프를 추가하는 것이다.
-	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
-	 * XXX:       to add infinite loop here before
-	 * XXX:       implementing the process_wait. */
 	for(long long i = 0; i < 800000000; i++){
 	}
 

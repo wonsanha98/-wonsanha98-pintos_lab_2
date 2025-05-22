@@ -36,6 +36,8 @@ void seek (int fd, unsigned position);
 unsigned tell (int fd);
 void close (int fd);
 
+// struct lock filesys_lock;
+
 int dup2(int oldfd, int newfd);
 
 /* Project 3 and optionally project 4. */

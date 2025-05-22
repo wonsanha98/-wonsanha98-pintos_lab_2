@@ -1,16 +1,16 @@
 FAIL
 Kernel panic in run: PANIC at ../../userprog/exception.c:92 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217eb6 0x800421c6b0 0x800421c82f 0x8004208cc0 0x80042090de 0x800421e1ad 0x800421cde3 0x800421cb46 0x800421c8a4 0x400171 0x4001cf 0x400c70
+Call stack: 0x8004217ede 0x800421c865 0x8004208ce8 0x8004209106 0x800421ec0f 0x800421e9bc 0x800421d0fd 0x800421cc7f 0x800421ca59 0x400121 0x4001cf 0x400c70
 Translation of call stack:
-0x0000008004217eb6: debug_panic (lib/kernel/debug.c:32)
-0x000000800421c6b0: kill (userprog/exception.c:98)
-0x000000800421c82f: page_fault (userprog/exception.c:154 (discriminator 12))
-0x0000008004208cc0: intr_handler (threads/interrupt.c:352)
-0x00000080042090de: intr_entry (threads/intr-stubs.o:?)
-0x000000800421e1ad: file_close (filesys/file.c:55)
-0x000000800421cde3: close (userprog/syscall.c:236)
-0x000000800421cb46: syscall_handler (userprog/syscall.c:106)
-0x000000800421c8a4: no_sti (userprog/syscall-entry.o:?)
-0x0000000000400171: (unknown)
+0x0000008004217ede: debug_panic (lib/kernel/debug.c:32)
+0x000000800421c865: kill (userprog/exception.c:98)
+0x0000008004208ce8: intr_handler (threads/interrupt.c:352)
+0x0000008004209106: intr_entry (threads/intr-stubs.o:?)
+0x000000800421ec0f: file_allow_write (filesys/file.c:134)
+0x000000800421e9bc: file_close (filesys/file.c:58)
+0x000000800421d0fd: open (userprog/syscall.c:219)
+0x000000800421cc7f: syscall_handler (userprog/syscall.c:100)
+0x000000800421ca59: no_sti (userprog/syscall-entry.o:?)
+0x0000000000400121: (unknown)
 0x00000000004001cf: (unknown)
 0x0000000000400c70: (unknown)

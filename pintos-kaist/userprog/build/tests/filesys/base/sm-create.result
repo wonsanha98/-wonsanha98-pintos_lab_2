@@ -1,17 +1,19 @@
 FAIL
-Kernel panic in run: PANIC at ../../userprog/exception.c:92 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217eb6 0x800421c6b0 0x800421c82f 0x8004208cc0 0x80042090de 0x800421ccca 0x800421ca61 0x800421c8a4 0x40075b 0x400976 0x400183 0x400e6c 0x400eb5
-Translation of call stack:
-0x0000008004217eb6: debug_panic (lib/kernel/debug.c:32)
-0x000000800421c6b0: kill (userprog/exception.c:98)
-0x000000800421c82f: page_fault (userprog/exception.c:154 (discriminator 12))
-0x0000008004208cc0: intr_handler (threads/interrupt.c:352)
-0x00000080042090de: intr_entry (threads/intr-stubs.o:?)
-0x000000800421ccca: filesize (userprog/syscall.c:169)
-0x000000800421ca61: syscall_handler (userprog/syscall.c:90)
-0x000000800421c8a4: no_sti (userprog/syscall-entry.o:?)
-0x000000000040075b: (unknown)
-0x0000000000400976: (unknown)
-0x0000000000400183: (unknown)
-0x0000000000400e6c: (unknown)
-0x0000000000400eb5: (unknown)
+Test output failed to match any acceptable form.
+
+Acceptable output:
+  (sm-create) begin
+  (sm-create) create "blargle"
+  (sm-create) open "blargle" for verification
+  (sm-create) verified contents of "blargle"
+  (sm-create) close "blargle"
+  (sm-create) end
+Differences in `diff -u' format:
+  (sm-create) begin
+  (sm-create) create "blargle"
+- (sm-create) open "blargle" for verification
+- (sm-create) verified contents of "blargle"
+- (sm-create) close "blargle"
+- (sm-create) end
+
+(Process exit codes are excluded for matching purposes.)
