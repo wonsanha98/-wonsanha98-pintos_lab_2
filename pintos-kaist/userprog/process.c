@@ -212,7 +212,10 @@ error:
  * Returns -1 on fail. */
 int
 process_exec (void *f_name) { //실행하려는 바이너리 파일의 이름?
-	char *file_name = f_name;
+	char *file_name = palloc_get_page(PAL_ZERO);
+	if(file_name == NULL) return -1;
+
+	strlcpy(file_name, (char *)f_name, PGSIZE);
 	bool success;
 
 	/* 현재 실행 컨텍스트를 f_name으로 전환한다.
@@ -300,7 +303,7 @@ int
 process_wait (tid_t child_tid UNUSED) {
 	//추천하는 방법은 process_wait를 구현하기 전에 
 	//이곳에 무한 루프를 추가하는 것이다.
-	for(long long i = 0; i < 800000000; i++){
+	for(long long i = 0; i < 2000000000; i++){
 	}
 
 	return -1;

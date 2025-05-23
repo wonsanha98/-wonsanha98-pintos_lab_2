@@ -26,7 +26,7 @@ syscall 명령어는 모델 특수 레지스터(MSR)의 값을 읽어서 동작�
 #define MSR_LSTAR 0xc0000082        /* long mode에서 SYSCALL 명령어가 호출될 때 제어가 이동하는 대상 주소를 의미한다. */
 #define MSR_SYSCALL_MASK 0xc0000084 /* eflags를 마스킹하기 위한 값. */
 
-void check_addr(void *addr);
+void check_addr(const void *addr);
 struct file *fd_tofile(int fd);
 
 
@@ -148,10 +148,12 @@ pid_t pro_fork (const char *thread_name, struct intr_frame *_if)
 int exec(const char *cmd_line)
 {
 	check_addr(cmd_line);
-	lock_acquire(&filesys_lock);
 	int ex = process_exec(cmd_line);
-	lock_release(&filesys_lock);
-	return ex;
+	if(ex == -1)
+	{
+		return TID_ERROR;
+	}
+	return thread_current()->tid;
 }
 
 
@@ -167,6 +169,7 @@ int wait(pid_t pid)
 bool create(const char *file, unsigned initial_size)
 {
 	check_addr(file);
+
 	lock_acquire(&filesys_lock);
 	bool cre = filesys_create(file, initial_size);
 	lock_release(&filesys_lock);
@@ -183,45 +186,32 @@ bool remove(const char *file)
 	return rem;
 }
 
-
 int open(const char *file)
 {
 	check_addr(file);
-	int open_fd = 0;
+	struct thread *curr = thread_current();
+
+	int open_fd;
+	bool is_not_full = false;
+	for(open_fd = 2; open_fd < 64; open_fd++)
+	{
+		if(curr->fd_table[open_fd] == NULL)
+		{
+			is_not_full = true;
+			break;
+		}
+	}
+	if(!is_not_full) return -1;
 
 	lock_acquire(&filesys_lock);
 	struct file *open_file = filesys_open(file);
 	lock_release(&filesys_lock);
+	if(open_file == NULL) return -1;
 
-	if(open_file == NULL)
-	{
-		return -1;
-	}
-	else
-	{
-		struct thread *curr = thread_current();
+	curr->fd_table[open_fd] = open_file;
+	curr->fd = open_fd;
 
-		for(int i = 2; i < 64; i++)
-		{
-			if(curr->fd_table[i] != NULL)
-			{
-				open_fd = i;
-				curr->fd_table[i] = open_file;
-				curr->fd = open_fd;
-				break;
-			}
-		}
-	}
-
-	if(open_fd == 0)
-	{
-		file_close(file);
-		return 1;
-	}
-	else
-	{
-		return open_fd;
-	}
+	return open_fd;
 }
 
 
@@ -308,8 +298,9 @@ int write(int fd, const void *buffer, unsigned size)
 		else
 		{
 			lock_acquire(&filesys_lock);
-			return file_write(write_file, buffer, size);
+			int wri = file_write(write_file, buffer, size);
 			lock_release(&filesys_lock);
+			return wri;
 		}
 	}
 }
@@ -367,12 +358,12 @@ void close(int fd)
 		return;
 	}
 	
-	struct file *close_file = (curr->fd_table[fd]);
-	check_addr(close_file);
+	struct file *cl_file = fd_tofile(fd);
+	// check_addr(cl_file);
 
-	if(close_file == NULL)
+	if(cl_file == NULL)
 	{
-		return;
+		exit(-1);
 	}
 
 	if(fd < 0 || 64 <= fd)
@@ -380,20 +371,22 @@ void close(int fd)
 		return;
 	}
 
-	curr->fd_table[fd] == NULL;
+	lock_acquire(&filesys_lock);
+	file_close(cl_file);
+	lock_release(&filesys_lock);
+	curr->fd_table[fd] = NULL;
+	
 }
 
 
 
 
-
 //////////////
-void check_addr(void *addr)
+void check_addr(const void *addr)
 {
-	if(addr == NULL || !is_user_vaddr(addr) || (!pml4_get_page(thread_current()->pml4, addr)))
-	{
-		exit(-1);
-	}
+	if(addr == NULL) exit(-1);
+	if(!is_user_vaddr(addr)) exit(-1);
+	if(pml4_get_page(thread_current()->pml4, addr) == NULL) exit(-1);
 }
 
 struct file *fd_tofile(int fd)

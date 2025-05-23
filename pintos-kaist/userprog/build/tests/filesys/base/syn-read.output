@@ -4,7 +4,7 @@ Kernel command line: -q -f put syn-read put child-syn-read run syn-read
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  215,859,200 loops/s.
+Calibrating timer...  235,520,000 loops/s.
 hd0:0: detected 321 sector (160 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 225 sector (112 kB) disk, model "QEMU HARDDISK", serial "QM00003"
@@ -16,13 +16,53 @@ Executing 'syn-read':
 (syn-read) begin
 (syn-read) create "data"
 (syn-read) open "data"
+(syn-read) write "data"
+(syn-read) close "data"
+(syn-read) exec child 1 of 10: "child-syn-read 0"
+(syn-read) exec child 2 of 10: "child-syn-read 1"
+(syn-read) exec child 3 of 10: "child-syn-read 2"
+(syn-read) exec child 4 of 10: "child-syn-read 3"
+(syn-read) exec child 5 of 10: "child-syn-read 4"
+(syn-read) exec child 6 of 10: "child-syn-read 5"
+(syn-read) exec child 7 of 10: "child-syn-read 6"
+(syn-read) exec child 8 of 10: "child-syn-read 7"
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+(syn-read) exec child 10 of 10: "child-syn-read 9"
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+Page fault at 0x16467fcf4: not present error reading page in user context.
+child-syn-read: dying due to interrupt 0x0e (#PF Page-Fault Exception).
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=400703
+ cr2=000000016467fcf4 error=               4
+rax 000000016467fcf4 rbx 000000004747ff88 rcx 0000000000000000 rdx 000000011d1ffd90
+rsp 000000004747fe90 rbp 000000004747ff50 rsi 0000000000000000 rdi 0000000000404721
+rip 0000000000400703 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000000 r12 0000000000000000 r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000202
+es: 001b ds: 001b cs: 0023 ss: 001b
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+Page fault at 0x16467fcf4: not present error reading page in user context.
+child-syn-read: dying due to interrupt 0x0e (#PF Page-Fault Exception).
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=400703
+ cr2=000000016467fcf4 error=               4
+rax 000000016467fcf4 rbx 000000004747ff88 rcx 0000000000000000 rdx 000000011d1ffd90
+rsp 000000004747fe90 rbp 000000004747ff50 rsi 0000000000000000 rdi 0000000000404721
+rip 0000000000400703 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000000 r12 0000000000000000 r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000202
+es: 001b ds: 001b cs: 0023 ss: 001b
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+(syn-read) exec child 9 of 10: "child-syn-read 8"
 Execution of 'syn-read' complete.
-Timer: 444 ticks
-Thread: 42 idle ticks, 401 kernel ticks, 1 user ticks
+Timer: 1387 ticks
+Thread: 35 idle ticks, 871 kernel ticks, 486 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 133 reads, 502 writes
+hd0:1: 137 reads, 504 writes
 hd1:0: 225 reads, 0 writes
-Console: 919 characters output
+Console: 3183 characters output
 Keyboard: 0 keys pressed
-Exception: 0 page faults
+Exception: 2 page faults
 Powering off...

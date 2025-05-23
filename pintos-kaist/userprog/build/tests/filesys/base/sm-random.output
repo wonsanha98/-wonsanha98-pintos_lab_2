@@ -14,13 +14,16 @@ Putting 'sm-random' into the file system...
 Executing 'sm-random':
 (sm-random) begin
 (sm-random) create "bazzle"
+(sm-random) open "bazzle"
+(sm-random) write "bazzle" in random order
+sm-random: exit(-1)
 Execution of 'sm-random' complete.
-Timer: 414 ticks
-Thread: 34 idle ticks, 380 kernel ticks, 0 user ticks
+Timer: 893 ticks
+Thread: 33 idle ticks, 859 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 104 reads, 263 writes
+hd0:1: 109 reads, 264 writes
 hd1:0: 110 reads, 0 writes
-Console: 836 characters output
+Console: 925 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

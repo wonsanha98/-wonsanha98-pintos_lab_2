@@ -32,18 +32,18 @@ Differences in `diff -u' format:
   (syn-read) begin
   (syn-read) create "data"
   (syn-read) open "data"
-- (syn-read) write "data"
-- (syn-read) close "data"
-- (syn-read) exec child 1 of 10: "child-syn-read 0"
-- (syn-read) exec child 2 of 10: "child-syn-read 1"
-- (syn-read) exec child 3 of 10: "child-syn-read 2"
-- (syn-read) exec child 4 of 10: "child-syn-read 3"
-- (syn-read) exec child 5 of 10: "child-syn-read 4"
-- (syn-read) exec child 6 of 10: "child-syn-read 5"
-- (syn-read) exec child 7 of 10: "child-syn-read 6"
-- (syn-read) exec child 8 of 10: "child-syn-read 7"
-- (syn-read) exec child 9 of 10: "child-syn-read 8"
-- (syn-read) exec child 10 of 10: "child-syn-read 9"
+  (syn-read) write "data"
+  (syn-read) close "data"
+  (syn-read) exec child 1 of 10: "child-syn-read 0"
+  (syn-read) exec child 2 of 10: "child-syn-read 1"
+  (syn-read) exec child 3 of 10: "child-syn-read 2"
+  (syn-read) exec child 4 of 10: "child-syn-read 3"
+  (syn-read) exec child 5 of 10: "child-syn-read 4"
+  (syn-read) exec child 6 of 10: "child-syn-read 5"
+  (syn-read) exec child 7 of 10: "child-syn-read 6"
+  (syn-read) exec child 8 of 10: "child-syn-read 7"
+  (syn-read) exec child 9 of 10: "child-syn-read 8"
+  (syn-read) exec child 10 of 10: "child-syn-read 9"
 - (syn-read) wait for child 1 of 10 returned 0 (expected 0)
 - (syn-read) wait for child 2 of 10 returned 1 (expected 1)
 - (syn-read) wait for child 3 of 10 returned 2 (expected 2)
@@ -55,5 +55,33 @@ Differences in `diff -u' format:
 - (syn-read) wait for child 9 of 10 returned 8 (expected 8)
 - (syn-read) wait for child 10 of 10 returned 9 (expected 9)
 - (syn-read) end
++ (syn-read) exec child 9 of 10: "child-syn-read 8"
++ Page fault at 0x16467fcf4: not present error reading page in user context.
++ child-syn-read: dying due to interrupt 0x0e (#PF Page-Fault Exception).
++ Interrupt 0x0e (#PF Page-Fault Exception) at rip=400703
++  cr2=000000016467fcf4 error=               4
++ rax 000000016467fcf4 rbx 000000004747ff88 rcx 0000000000000000 rdx 000000011d1ffd90
++ rsp 000000004747fe90 rbp 000000004747ff50 rsi 0000000000000000 rdi 0000000000404721
++ rip 0000000000400703 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
++ r11 0000000000000000 r12 0000000000000000 r13 0000000000000000 r14 0000000000000000
++ r15 0000000000000000 rflags 00000202
++ es: 001b ds: 001b cs: 0023 ss: 001b
++ (syn-read) exec child 9 of 10: "child-syn-read 8"
++ Page fault at 0x16467fcf4: not present error reading page in user context.
++ child-syn-read: dying due to interrupt 0x0e (#PF Page-Fault Exception).
++ Interrupt 0x0e (#PF Page-Fault Exception) at rip=400703
++  cr2=000000016467fcf4 error=               4
++ rax 000000016467fcf4 rbx 000000004747ff88 rcx 0000000000000000 rdx 000000011d1ffd90
++ rsp 000000004747fe90 rbp 000000004747ff50 rsi 0000000000000000 rdi 0000000000404721
++ rip 0000000000400703 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
++ r11 0000000000000000 r12 0000000000000000 r13 0000000000000000 r14 0000000000000000
++ r15 0000000000000000 rflags 00000202
++ es: 001b ds: 001b cs: 0023 ss: 001b
++ (syn-read) exec child 9 of 10: "child-syn-read 8"
++ (syn-read) exec child 9 of 10: "child-syn-read 8"
++ (syn-read) exec child 9 of 10: "child-syn-read 8"
++ (syn-read) exec child 9 of 10: "child-syn-read 8"
++ (syn-read) exec child 9 of 10: "child-syn-read 8"
++ (syn-read) exec child 9 of 10: "child-syn-read 8"
 
 (Process exit codes are excluded for matching purposes.)

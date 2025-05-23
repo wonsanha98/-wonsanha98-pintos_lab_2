@@ -54,6 +54,19 @@
         "stdexcept": "c",
         "system_error": "c",
         "tuple": "c",
-        "off_t.h": "c"
+        "off_t.h": "c",
+        "cctype": "c",
+        "cerrno": "c",
+        "climits": "c",
+        "clocale": "c",
+        "cstdarg": "c",
+        "cstdint": "c",
+        "cwctype": "c",
+        "ios": "c",
+        "queue": "c",
+        "cinttypes": "c",
+        "cstdbool": "c",
+        "random": "c",
+        "gdt.h": "c"
     }
 }
