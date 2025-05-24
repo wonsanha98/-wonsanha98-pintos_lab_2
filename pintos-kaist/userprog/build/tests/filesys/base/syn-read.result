@@ -1,2 +1,14 @@
 FAIL
-run: TIMEOUT
+Kernel panic in run: PANIC at ../../lib/kernel/list.c:242 in list_remove(): assertion `is_interior (elem)' failed.
+Call stack: 0x8004217f96 0x80042187ec 0x800421bc4a 0x800421d256 0x800421d028 0x800421ce9d 0x4007b9 0x4002be 0x400fa7 0x400ff0
+Translation of call stack:
+0x0000008004217f96: debug_panic (lib/kernel/debug.c:32)
+0x00000080042187ec: list_remove (lib/kernel/list.c:243)
+0x000000800421bc4a: process_wait (userprog/process.c:311)
+0x000000800421d256: syscall_wait (userprog/syscall.c:151)
+0x000000800421d028: syscall_handler (userprog/syscall.c:81)
+0x000000800421ce9d: no_sti (userprog/syscall-entry.o:?)
+0x00000000004007b9: (unknown)
+0x00000000004002be: (unknown)
+0x0000000000400fa7: (unknown)
+0x0000000000400ff0: (unknown)

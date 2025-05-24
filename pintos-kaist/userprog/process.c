@@ -218,7 +218,7 @@ __do_fork (void *aux) {
 
 error:
 	sema_up(&current->fork_sema);
-	exit(TID_ERROR);
+	syscall_exit(TID_ERROR);
 	// thread_exit ();
 }
 

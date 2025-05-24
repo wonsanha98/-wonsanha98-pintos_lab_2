@@ -36,9 +36,9 @@ pass tests/userprog/write-stdin
 pass tests/userprog/write-bad-fd
 pass tests/userprog/fork-once
 pass tests/userprog/fork-multiple
-FAIL tests/userprog/fork-recursive
-FAIL tests/userprog/fork-read
-FAIL tests/userprog/fork-close
+pass tests/userprog/fork-recursive
+pass tests/userprog/fork-read
+pass tests/userprog/fork-close
 pass tests/userprog/fork-boundary
 FAIL tests/userprog/exec-once
 FAIL tests/userprog/exec-arg

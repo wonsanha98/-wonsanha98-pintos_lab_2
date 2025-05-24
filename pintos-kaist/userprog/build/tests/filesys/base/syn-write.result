@@ -1,2 +1,13 @@
 FAIL
-run: TIMEOUT
+Kernel panic in run: PANIC at ../../lib/string.c:12 in memcpy(): assertion `dst != NULL || size == 0' failed.
+Call stack: 0x8004217f96 0x8004216ed7 0x800421b833 0x800420ca1e 0x800420cad0 0x800420cb75 0x800420cc0d 0x800421b969 0x800420775f
+Translation of call stack:
+0x0000008004217f96: debug_panic (lib/kernel/debug.c:32)
+0x0000008004216ed7: memcpy (lib/string.c:13)
+0x000000800421b833: duplicate_pte (userprog/process.c:147)
+0x000000800420ca1e: pt_for_each (threads/mmu.c:112)
+0x000000800420cad0: pgdir_for_each (threads/mmu.c:125)
+0x000000800420cb75: pdp_for_each (threads/mmu.c:138)
+0x000000800420cc0d: pml4_for_each (threads/mmu.c:151)
+0x000000800421b969: __do_fork (userprog/process.c:188)
+0x000000800420775f: kernel_thread (threads/thread.c:522)
