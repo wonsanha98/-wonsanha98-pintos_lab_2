@@ -18,12 +18,12 @@ Executing 'read-zero':
 (read-zero) end
 read-zero: exit(0)
 Execution of 'read-zero' complete.
-Timer: 921 ticks
-Thread: 32 idle ticks, 889 kernel ticks, 1 user ticks
+Timer: 74 ticks
+Thread: 33 idle ticks, 40 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 111 reads, 248 writes
 hd1:0: 105 reads, 0 writes
-Console: 933 characters output
+Console: 931 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

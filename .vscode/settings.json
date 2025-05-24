@@ -67,6 +67,11 @@
         "cinttypes": "c",
         "cstdbool": "c",
         "random": "c",
-        "gdt.h": "c"
+        "gdt.h": "c",
+        "mmu.h": "c",
+        "filesys.h": "c",
+        "stdlib.h": "c",
+        "tss.h": "c",
+        "file.h": "c"
     }
 }

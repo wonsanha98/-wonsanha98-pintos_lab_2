@@ -1,19 +1,15 @@
 FAIL
-Kernel panic in run: PANIC at ../../threads/thread.c:297 in thread_current(): assertion `is_thread (t)' failed.
-Call stack: 0x8004217ede 0x8004207088 0x800420a25b 0x800420b5a2 0x800420b6a6 0x800420bc4c 0x800421faf6 0x800421f0c5 0x800421f195 0x800421db0b 0x800421bd81 0x800421b9a7 0x800421cedc 0x800421cc15 0x800421ca96
-Translation of call stack:
-0x0000008004217ede: debug_panic (lib/kernel/debug.c:32)
-0x0000008004207088: thread_current (threads/thread.c:298)
-0x000000800420a25b: lock_acquire (threads/synch.c:208)
-0x000000800420b5a2: palloc_get_multiple (threads/palloc.c:265 (discriminator 4))
-0x000000800420b6a6: palloc_get_page (threads/palloc.c:295)
-0x000000800420bc4c: malloc (threads/malloc.c:122)
-0x000000800421faf6: inode_read_at (filesys/inode.c:210)
-0x000000800421f0c5: lookup (filesys/directory.c:88 (discriminator 1))
-0x000000800421f195: dir_lookup (filesys/directory.c:112)
-0x000000800421db0b: filesys_open (filesys/filesys.c:86)
-0x000000800421bd81: load (userprog/process.c:442)
-0x000000800421b9a7: process_exec (userprog/process.c:238)
-0x000000800421cedc: exec (userprog/syscall.c:151)
-0x000000800421cc15: syscall_handler (userprog/syscall.c:88)
-0x000000800421ca96: no_sti (userprog/syscall-entry.o:?)
+Test output failed to match any acceptable form.
+
+Acceptable output:
+  (exec-once) begin
+  (exec-once) I'm your father
+  (child-simple) run
+  exec-once: exit(81)
+Differences in `diff -u' format:
+  (exec-once) begin
+  (exec-once) I'm your father
+- (child-simple) run
+- exec-once: exit(81)
++ (exec-once) end
++ exec-once: exit(0)

@@ -11,8 +11,6 @@
 #include "threads/synch.h"
 #include "threads/vaddr.h"
 #include "intrinsic.h"
-#include "userprog/syscall.h"
-
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -40,7 +38,6 @@ static struct thread *initial_thread;
 /* allocate_tid()에서 사용하는 락. */
 static struct lock tid_lock;
 
-
 /* 삭제 요청된 스레드 목록 */
 static struct list destruction_req;
 
@@ -57,7 +54,6 @@ static unsigned thread_ticks; /* 마지막 yield 이후 경과된 timer tick 수
    true면 multi-level feedback queue 스케줄러 사용.
    이는 커널 명령줄 옵션 "-o mlfqs"로 제어됩니다. */
 bool thread_mlfqs;
-
 
 static void kernel_thread (thread_func *, void *aux);
 
@@ -85,7 +81,6 @@ static tid_t allocate_tid (void);
 // Because the gdt will be setup after the thread_init, we should
 // setup temporal gdt first.
 static uint64_t gdt[3] = { 0, 0x00af9a000000ffff, 0x00cf92000000ffff };
-
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -116,7 +111,6 @@ thread_init (void) {
 
 	/* Init the globla thread context */
 	lock_init (&tid_lock);			// cpu 자원 쓰는 것을 선점하고 관리하기 위한 lock
-	
 	list_init (&ready_list);
 	list_init (&destruction_req);	//쓰레드 폐기 요청 리스트
 	list_init (&sleep_list);
@@ -192,46 +186,54 @@ thread_print_stats (void) {
    PRIORITY, but no actual priority scheduling is implemented.
    Priority scheduling is the goal of Problem 1-3. */
 // 새로운 커널 쓰레드 생성 함수. thread_func를 실행하며 aux에 넣은 인자를 thread_func에 전달하면 해당 함수를 쓰레드가 실행한다.
-// FILE_NAME을 실행할 새 스레드를 생성한다.
-tid_t	//보조 인자 aux에 
+tid_t
 thread_create (const char *name, int priority,
 		thread_func *function, void *aux) {
 	struct thread *t;
+	struct thread *curr = thread_current();
 	tid_t tid;
 
 	ASSERT (function != NULL);
 
-	/* 스레드를 할당한다. */
+	/* Allocate thread. */
 	t = palloc_get_page (PAL_ZERO);
 	if (t == NULL)
 		return TID_ERROR;
 
-	/* 스레드를 초기화한다. */
+	/* Initialize thread. */
 	init_thread (t, name, priority);
-	tid = t->tid = allocate_tid ();	// 스레드 id
+	tid = t->tid = allocate_tid ();
 
-	/* 스레드가 스케줄되었다면 kernel_thread를 호출한다.
+	/* Call the kernel_thread if it scheduled.
 	 * Note) rdi is 1st argument, and rsi is 2nd argument. */
-	t->tf.rip = (uintptr_t) kernel_thread;	//549825050261 커널 스레드의 포인터?
-	t->tf.R.rdi = (uint64_t) function;		//첫 번째 인자, 함수? (void *) 0x80042b6000? 
-	t->tf.R.rsi = (uint64_t) aux;			//두 번째 인자, 549825765376?
+	t->tf.rip = (uintptr_t) kernel_thread;
+	t->tf.R.rdi = (uint64_t) function;
+	t->tf.R.rsi = (uint64_t) aux;
 	t->tf.ds = SEL_KDSEG;
 	t->tf.es = SEL_KDSEG;
 	t->tf.ss = SEL_KDSEG;
 	t->tf.cs = SEL_KCSEG;
 	t->tf.eflags = FLAG_IF;
 
+	
 	for(int i = 0; i < 64; i++)
 	{
 		t->fd_table[i] == NULL;
 	}
 	t->fd = -1;
-	//0 과 1을 따로 할당해주는 부분을 넣어야 하는가?
 
-	/* ready 큐에 추가한다. */
+
+	t->parent = curr;
+	//부모 children list 에 insert 한다.
+	list_push_back(&curr->children, &t->ch_elem);
+	/* Add to run queue. */
+	//ready_list 에 넣어준다.
 	thread_unblock (t);
-	/* 현재 실행 중인 스레드와 새로 삽입된 스레드의 우선순위(priority)를 비교한다.
-	   새로 도착한 스레드의 우선순위가 더 높다면 CPU를 양보(yield)한다.*/
+	
+
+	/* compare the priorities of the currently running
+	thread and the newly inserted one. Yield the CPU if the
+	newly arriving thread has higher priority*/
 	if(thread_current()->priority < priority){
 		thread_yield();
 	}
@@ -318,8 +320,8 @@ thread_exit (void) {
 	process_exit ();
 #endif
 
-	/* 단지 현재 상태를 'dying'으로 설정하고 다른 프로세스를 스케줄한다.
-	   우리는 schedule_tail() 호출 중에 제거될 것이다. */
+	/* Just set our status to dying and schedule another process.
+	   We will be destroyed during the call to schedule_tail(). */
 	intr_disable ();
 	do_schedule (THREAD_DYING);
 	NOT_REACHED ();
@@ -331,20 +333,18 @@ thread_exit (void) {
 void
 thread_yield (void) {
 	struct thread *curr = thread_current ();
-
-	if(curr != idle_thread)
-	{
-		enum intr_level old_level;
-
-		ASSERT (!intr_context ());
-
-		old_level = intr_disable ();
-		if (curr != idle_thread)
-			list_insert_ordered(&ready_list, &curr->elem, priority_more, NULL);
-		do_schedule (THREAD_READY);
-		intr_set_level (old_level);	
+		if (curr == idle_thread){
+		return;
 	}
+	enum intr_level old_level;
 	
+	ASSERT (!intr_context ());
+
+	old_level = intr_disable ();
+	if (curr != idle_thread)
+		list_insert_ordered(&ready_list, &curr->elem, priority_more, NULL);
+	do_schedule (THREAD_READY);
+	intr_set_level (old_level);
 }
 
 // 현재 쓰레드를 블록하고  sleep_list로 이동시킨다.
@@ -517,8 +517,8 @@ static void
 kernel_thread (thread_func *function, void *aux) {
 	ASSERT (function != NULL);
 
-	intr_enable ();       /* 스케줄러는 인터럽트가 비활성화된 상태에서 실행된다. */
-	function (aux);       /* 스레드 함수를 실행한다. */
+	intr_enable ();       /* The scheduler runs with interrupts off. */
+	function (aux);       /* Execute the thread function. */
 	thread_exit ();       /* If function() returns, kill the thread. */
 }
 
@@ -535,14 +535,18 @@ init_thread (struct thread *t, const char *name, int priority) {
 	memset (t, 0, sizeof *t);
 	t->status = THREAD_BLOCKED;
 	strlcpy (t->name, name, sizeof t->name);
-	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *); //스레드 t를 가리키는 포인터 + 4KB - 8?(void*)
+	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
 	t->priority = priority;
 	t->origin_priority = priority;
 	t->magic = THREAD_MAGIC;
 	/*------------------[Project1 - Thread]------------------*/
 	t->getuptick = 0;
 	list_init(&t->donations);
+	list_init(&t->children);
 	t->wait_on_lock = NULL;
+	sema_init(&t->wait_sema,0);
+	sema_init(&t->child_sema,0);
+	sema_init(&t->fork_sema, 0);
 
 }
 

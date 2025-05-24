@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/interrupt.h"
+#include "threads/synch.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -30,11 +31,11 @@ typedef int tid_t;
 
 /* A kernel thread or user process.
  *
- * 각 스레드 구조체는 고유한 4KB 페이지에 저장된다.
-스레드 구조체 자체는 페이지의 맨 아래(오프셋 0)에 위치한다.
-페이지의 나머지 부분은 스레드의 커널 스택을 위해 예약되며,
-이 커널 스택은 페이지의 맨 위(오프셋 4KB)에서 아래 방향으로 성장한다.
-다음은 이에 대한 그림이다:
+ * Each thread structure is stored in its own 4 kB page.  The
+ * thread structure itself sits at the very bottom of the page
+ * (at offset 0).  The rest of the page is reserved for the
+ * thread's kernel stack, which grows downward from the top of
+ * the page (at offset 4 kB).  Here's an illustration:
  *
  *      4 kB +---------------------------------+
  *           |          kernel stack           |
@@ -99,18 +100,23 @@ struct thread {
 	struct list_elem d_elem;			/* donation List element. */
 	struct lock *wait_on_lock; 			/* lock that it waits for. */
 	int origin_priority;
+	struct thread *parent;
 
+	struct file *fd_table[64];
+	int fd;
+	struct semaphore wait_sema;
+	struct semaphore child_sema;
+	struct semaphore fork_sema;
 
-	struct file *fd_table[64];			//파일 디스크립터 테이블
-	int  fd;		
-	struct intr_frame _if;
-	uint64_t *pml4;                     /* Page map level 4 */
+	struct list children;
+	struct list_elem ch_elem;
+
+	int wait_check;
+	int exit_status;
 
 #ifdef USERPROG
 	/* Owned by userprog/process.c. */
-
-
-
+	uint64_t *pml4;                     /* Page map level 4 */
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
@@ -160,6 +166,5 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 void do_iret (struct intr_frame *tf);
-
 
 #endif /* threads/thread.h */

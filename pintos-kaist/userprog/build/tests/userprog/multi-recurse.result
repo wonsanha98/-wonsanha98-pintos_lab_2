@@ -1,2 +1,2 @@
 FAIL
-run: wait(exec("multi-recurse 14")) returned 2: FAILED
+run: TIMEOUT

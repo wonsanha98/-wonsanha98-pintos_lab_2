@@ -8,6 +8,9 @@
 #include "threads/flags.h"
 #include "intrinsic.h"
 #include "filesys/filesys.h"
+#include "user/syscall.h"
+
+
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
@@ -65,6 +68,7 @@ syscall_init (void) {
 			FLAG_IF | FLAG_TF | FLAG_DF | FLAG_IOPL | FLAG_AC | FLAG_NT);
 	
 	lock_init(&filesys_lock);
+	lock_init(&fork_lock);
 }
 
 /* 주요 시스템 콜 인터페이스.
@@ -73,6 +77,7 @@ void
 syscall_handler (struct intr_frame *f UNUSED) {
 
 	int call_number = (int)f->R.rax;
+	struct thread *crr = thread_current();
 
 	switch(call_number){
 		case SYS_HALT:
@@ -133,6 +138,8 @@ void halt (void){
 void exit (int status)
 {
 	struct thread *curr = thread_current();
+	//exit_status 미리저장해두기
+	curr->exit_status = status;
 	printf("%s: exit(%d)\n", curr->name, status); 
 	thread_exit();
 }
@@ -148,7 +155,7 @@ pid_t pro_fork (const char *thread_name, struct intr_frame *_if)
 int exec(const char *cmd_line)
 {
 	check_addr(cmd_line);
-	int ex = process_exec(cmd_line);
+	int ex = process_create_initd(cmd_line);
 	if(ex == -1)
 	{
 		return TID_ERROR;
