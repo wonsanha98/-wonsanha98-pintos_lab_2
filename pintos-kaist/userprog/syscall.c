@@ -12,6 +12,7 @@
 #include "user/syscall.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
+#include "userprog/process.h" 
 
 
 void syscall_entry (void);
@@ -99,24 +100,25 @@ int syscall_write(int fd, const void *buffer, unsigned size)
 	check_addr(buffer);
 	check_addr(buffer + size - 1);
 
+	 if (size == 0)
+        return 0;
+		
 	if (fd == 1)
 	{
-		lock_acquire(&filesys_lock);
 		putbuf(buffer, size);
-		lock_release(&filesys_lock);
 		
 		return size;
 	}
 	else if (fd == 0)
 	{
-		return -1;
+		syscall_exit(-1);
 	}
 	else if (fd > 1 && fd < 64)
 	{
 		struct file *write_file = fd_tofile(fd);
 		if (write_file == NULL)
 		{
-			return 0;
+			syscall_exit(-1);
 		}
 		else
 		{
@@ -126,17 +128,18 @@ int syscall_write(int fd, const void *buffer, unsigned size)
 			return wri;
 		}
 	}
-	return -1;
+	syscall_exit(-1);
 }
 
 int syscall_exec(const char* cmd_line){
 	check_addr(cmd_line);
-	int status = process_exec(cmd_line);
-	if(status == -1){
-		syscall_exit(status);
+	if(process_exec(cmd_line)<0){
+		syscall_exit(-1);
 	}
 	return thread_current()->tid;
 }
+ 
+
 
 bool syscall_remove(const char *file)
 {
@@ -185,7 +188,7 @@ int syscall_filesize(int fd)
 
 	if (size_file == NULL)
 	{
-		return -1;
+		syscall_exit(-1);
 	}
 
 	return file_length(size_file);
@@ -232,6 +235,7 @@ int syscall_read(int fd, void *buffer, unsigned size)
 			return rea;
 		}
 	}
+	syscall_exit(-1);
 }
 
 void syscall_seek(int fd, unsigned position)
@@ -257,24 +261,26 @@ unsigned syscall_tell(int fd)
 {
 	if (fd < 2)
 	{
-		return;
+		return 0;
 	}
 
 	if (fd < 0 || 64 <= fd)
 	{
-		return;
+		return 0;
 	}
 
 	struct file *tell_file = fd_tofile(fd);
-	check_addr(tell_file);
+	// check_addr(tell_file);
 
 	if (tell_file == NULL)
 	{
-		return;
+		return 0;
 	}
 	lock_acquire(&filesys_lock);
-	file_tell(tell_file);
+	unsigned tell = file_tell(tell_file);
 	lock_release(&filesys_lock);
+
+	return tell;
 }
 
 void syscall_close(int fd)

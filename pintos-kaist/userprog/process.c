@@ -49,16 +49,21 @@ tid_t process_create_initd(const char *file_name)
 	// file_name : args-single onearg
 	/* Make a copy of FILE_NAME.
 	 * Otherwise there's a race between the caller and load(). */
-	fn_copy = palloc_get_page(0);
+	fn_copy = palloc_get_page(PAL_ZERO);
 	if (fn_copy == NULL)
 		return TID_ERROR;
 	strlcpy(fn_copy, file_name, PGSIZE);
 
 	token = strtok_r(file_name, " ", &save_ptr);
+
+	// token = strtok_r(fn_copy, " ", &save_ptr);
 	/* Create a new thread to execute FILE_NAME. */
 	tid = thread_create(token, PRI_DEFAULT, initd, fn_copy);
 	if (tid == TID_ERROR)
+	{
+		// syscall_exit(-1);
 		palloc_free_page(fn_copy);
+	}
 	return tid;
 }
 
@@ -105,15 +110,15 @@ tid_t process_fork(const char *name, struct intr_frame *if_ UNUSED)
 		curr_elem = curr_elem->next;
 	}
 
-	if (check_tid == -1)
-	{
+	if (check_tid == -1){
 		return TID_ERROR;
+		// syscall_exit(TID_ERROR);
 	}
 
 	sema_down(&child->fork_sema);
-	if (child->exit_status == TID_ERROR)
-	{
+	if (child->exit_status == TID_ERROR){
 		return TID_ERROR;
+		// syscall_exit(TID_ERROR);
 	}
 
 	return tid;
@@ -136,7 +141,7 @@ duplicate_pte(uint64_t *pte, void *va, void *aux)
 	{
 		return true;
 	}
-	/* 2. 부모의 4단계 페이지 맵에서 가상 주소(VA)를 해석합니다. */
+	/* 2. Resolve VA from the parent's page map level 4. */
 	parent_page = pml4_get_page(parent->pml4, va);
 	if (parent_page == NULL)
 	{
@@ -178,6 +183,7 @@ __do_fork(void *aux)
 	/* 1. Read the cpu context to local stack. */
 	memcpy(&if_, parent_if, sizeof(struct intr_frame));
 
+	// if_.R.rax = 0; // 추가
 
 	/* 2. Duplicate PT */
 	current->pml4 = pml4_create();
@@ -244,7 +250,6 @@ int process_exec(void *f_name)
 	fn_copy = palloc_get_page(PAL_ZERO);
 	if (fn_copy == NULL)
 		return TID_ERROR;
-
 	strlcpy(fn_copy, file_name, PGSIZE);
 
 	/* We cannot use the intr_frame in the thread structure.
@@ -259,8 +264,8 @@ int process_exec(void *f_name)
 	process_cleanup();
 
 	/* And then load the binary */
-	success = load(fn_copy, &_if);
 	// success = load(file_name, &_if);
+	success = load(fn_copy, &_if);
 
 	/* If load failed, quit. */
 	// if (!success){
@@ -342,22 +347,25 @@ void process_exit(void)
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
-
-	file_close(curr->running_file);
-
-	for (int i = 0; i < 64; i++){
+	if (curr->running_file){
+		// file_allow_write(&curr->running_file);
+		file_close(curr->running_file);
+	}
+	for(int i = 0; i < 64; i++){
 		if(curr->fd_table[i] != NULL)
 		{
-			syscall_close(i);
+			file_close(curr->fd_table[i]);
+			curr->fd_table[i] == NULL;
 		}
 	}
 
 	sema_up(&curr->wait_sema);
 	sema_down(&curr->child_sema);
+
 	process_cleanup();
 }
 
-/* 현재 프로세스의 자원을 해제합니다. */
+/* Free the current process's resources. */
 static void
 process_cleanup(void)
 {
@@ -488,14 +496,19 @@ load(const char *file_name, struct intr_frame *if_)
 		return TID_ERROR;
 
 	strlcpy(fn_copy, file_name, PGSIZE);
-
-
-	token = strtok_r(fn_copy, " ", &save_ptr);
-	for( argc = 0; token != NULL;){
+	for (token = strtok_r(fn_copy, " ", &save_ptr); token != NULL;
+		 token = strtok_r(NULL, " ", &save_ptr))
+	{
 		argv[argc] = token;
 		argc++;
-		token = strtok_r(NULL, " ", &save_ptr);
 	}
+
+	// token = strtok_r(fn_copy, " ", &save_ptr);
+	// for( argc = 0; token != NULL;){
+	// 	argv[argc] = token;
+	// 	argc++;
+	// 	token = strtok_r(NULL, " ", &save_ptr);
+	// }
 
 
 	file_name = argv[0];
@@ -507,14 +520,14 @@ load(const char *file_name, struct intr_frame *if_)
 		goto done;
 	process_activate(thread_current()); 
 
+
 	/* Open executable file. */
 	file = filesys_open(file_name);
 	if (file == NULL)
-	{
+	{	
 		printf("load: %s: open failed\n", file_name);
 		goto done;
 	}
-
 
 	/* Read and verify executable header. */
 	if (file_read(file, &ehdr, sizeof ehdr) != sizeof ehdr || memcmp(ehdr.e_ident, "\177ELF\2\1\1", 7) || ehdr.e_type != 2 || ehdr.e_machine != 0x3E // amd64
@@ -525,7 +538,7 @@ load(const char *file_name, struct intr_frame *if_)
 	}
 
 	file_deny_write(file);
-	thread_current()->running_file = file;		//?
+	thread_current()->running_file = file;
 
 	/* Read program headers. */
 	file_ofs = ehdr.e_phoff;
@@ -592,7 +605,7 @@ load(const char *file_name, struct intr_frame *if_)
 	/* Start address. */
 	if_->rip = ehdr.e_entry;
 
-	/*------------------[Project2 - Argument Passing]------------------*/
+	// /*------------------[Project2 - Argument Passing]------------------*/
 	for (int j = argc - 1; j >= 0; j--)
 	{
 		if_->rsp = if_->rsp - (strlen(argv[j]) + 1);
@@ -612,12 +625,62 @@ load(const char *file_name, struct intr_frame *if_)
 	if_->rsp = if_->rsp - sizeof(void (*)());
 	memset(if_->rsp, 0, sizeof(void (*)()));
 
+	/*------------------[Project2 - Argument Passing]------------------*/
+// {
+//     /* 1) 복사한 문자열의 주소를 저장할 배열 */
+//     void *argv_addr[argc];
+
+//     /* 2) 역순으로 문자열 복사 */
+//     for (int j = argc - 1; j >= 0; j--) {
+//         size_t len = strlen(argv[j]) + 1;
+//         if_->rsp -= len;
+//         memcpy(if_->rsp, argv[j], len);
+//         argv_addr[j] = (void*)if_->rsp;
+//     }
+
+//     /* 3) 8바이트 정렬 */
+//     uintptr_t align = if_->rsp & 0x7;
+//     if_->rsp -= align;
+//     memset(if_->rsp, 0, align);
+
+//     /* 4) argv[argc] = NULL */
+//     if_->rsp -= sizeof(char*);
+//     *(char**)if_->rsp = NULL;
+
+//     /* 5) argv 포인터들 푸시 */
+//     for (int j = argc - 1; j >= 0; j--) {
+//         if_->rsp -= sizeof(char*);
+//         memcpy(if_->rsp, &argv_addr[j], sizeof(char*));
+//     }
+
+//     /* 6) argv 배열 주소 푸시 */
+//     char **argv_on_stack = (char**)if_->rsp;
+//     if_->rsp -= sizeof(char**);
+//     memcpy(if_->rsp, &argv_on_stack, sizeof(char**));
+
+//     /* 7) argc 푸시 */
+//     if_->rsp -= sizeof(int);
+//     *(int*)if_->rsp = argc;
+
+//     /* 8) fake return 주소(NULL) 푸시 */
+//     if_->rsp -= sizeof(void*);
+//     *(void**)if_->rsp = NULL;
+
+//     /* 9) 레지스터에 argc/argv 설정 */
+//     if_->R.rdi = argc;
+//     if_->R.rsi = (uint64_t)argv_on_stack;
+// }	
+
+	
+
 	success = true;
 
 done:
 	/* We arrive here whether the load is successful or not. */
 
 	// file_close(file);
+	if (!success && file != NULL)
+        file_close(file);
 	palloc_free_page(fn_copy);
 	return success;
 }
