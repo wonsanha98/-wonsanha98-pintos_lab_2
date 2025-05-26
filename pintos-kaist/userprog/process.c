@@ -90,7 +90,8 @@ tid_t process_fork(const char *name, struct intr_frame *if_ UNUSED)
 
 	if (tid == -1)
 	{
-		return TID_ERROR;
+		// return TID_ERROR;
+		syscall_exit(TID_ERROR);
 	}
 
 	struct thread *curr = thread_current();
@@ -340,6 +341,31 @@ int process_wait(tid_t child_tid UNUSED)
 }
 
 /* Exit the process. This function is called by thread_exit (). */
+// void process_exit(void)
+// {
+// 	struct thread *curr = thread_current();
+// 	/* TODO: Your code goes here.
+// 	 * TODO: Implement process termination message (see
+// 	 * TODO: project2/process_termination.html).
+// 	 * TODO: We recommend you to implement process resource cleanup here. */
+
+// 	if (curr->running_file != NULL){
+// 		// file_allow_write(&curr->running_file);
+// 		file_close(curr->running_file);
+// 	}
+// 	for(int i = 0; i < 64; i++){
+// 		if(curr->fd_table[i] != NULL)
+// 		{
+// 			syscall_close(i);
+// 		}
+// 	}
+
+// 	sema_up(&curr->wait_sema);
+// 	sema_down(&curr->child_sema);
+
+// 	process_cleanup();
+// }
+
 void process_exit(void)
 {
 	struct thread *curr = thread_current();
@@ -347,23 +373,36 @@ void process_exit(void)
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
-	if (curr->running_file){
-		// file_allow_write(&curr->running_file);
+	if (curr->running_file != NULL){
+		// file_allow_write(curr->running_file);
 		file_close(curr->running_file);
-	}
-	for(int i = 0; i < 64; i++){
-		if(curr->fd_table[i] != NULL)
-		{
-			file_close(curr->fd_table[i]);
-			curr->fd_table[i] == NULL;
-		}
+		curr->running_file = NULL;
 	}
 
 	sema_up(&curr->wait_sema);
+	struct list_elem *e, *next;
+	for (e = list_begin(&curr->children); e != list_end(&curr->children); e = next)
+	{
+		next = list_next(e);
+		struct thread *child = list_entry(e, struct thread, ch_elem);
+		if (!child->wait_check)
+		{
+			sema_up(&child->child_sema); // 자식도 언블럭되도록 함
+		}
+	}
 	sema_down(&curr->child_sema);
-
+	for (int i = 0; i < 64; i++)
+	{
+		if (curr->fd_table[i] != NULL)
+		{
+			file_close(curr->fd_table[i]);
+			curr->fd_table[i] = NULL;
+		}
+	}
+	
 	process_cleanup();
 }
+
 
 /* Free the current process's resources. */
 static void
