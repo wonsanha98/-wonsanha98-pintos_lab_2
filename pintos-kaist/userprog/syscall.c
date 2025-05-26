@@ -11,11 +11,14 @@
 // #include "threads/init.h"
 #include "user/syscall.h"
 #include "filesys/filesys.h"
+#include "filesys/file.h"
+
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
 
 /*------[ Project 2 System Call]------*/
+int syscall_exec(const char *cmd_line);
 bool syscall_create(const char *file, unsigned initial_size);
 int syscall_wait(pid_t pid);
 pid_t syscall_fork(const char *thread_name, struct intr_frame *if_ UNUSED);
@@ -45,7 +48,7 @@ struct file *fd_tofile(int fd);
 #define MSR_LSTAR 0xc0000082        /* Long mode SYSCALL target */
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
 
-	void syscall_init(void) {
+void syscall_init(void) {
 	write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48  |
 			((uint64_t)SEL_KCSEG) << 32);
 	write_msr(MSR_LSTAR, (uint64_t) syscall_entry);
@@ -58,81 +61,9 @@ struct file *fd_tofile(int fd);
 	lock_init(&filesys_lock);
 }
 
-
-/* The main system call interface */
-void
-syscall_handler (struct intr_frame *f UNUSED) {
-	uint64_t sys_number = f->R.rax;
-	// printf("syscall Number%d\n", sys_number);
-	switch (sys_number)
-	{
-	case SYS_HALT:
-		syscall_half();
-		break;
-	case SYS_EXIT: 
-		syscall_exit(f->R.rdi);
-	break;
-	case SYS_FORK:
-		f->R.rax = syscall_fork((const char *)f->R.rdi, f);
-		break;
-	case SYS_EXEC: 
-		break;
-	case SYS_WAIT: 
-		f->R.rax = syscall_wait((pid_t)f->R.rdi);
-		break;
-	case SYS_CREATE: 
-		f->R.rax = syscall_create((const char *)f->R.rdi, (unsigned) f->R.rsi);
-		break;
-	case SYS_REMOVE:
-		f->R.rax = syscall_remove((const char *)f->R.rdi);
-		break;
-	case SYS_OPEN:
-		f->R.rax = syscall_open((const char *)f->R.rdi);
-		break;
-	case SYS_FILESIZE:
-		f->R.rax = syscall_filesize((int)f->R.rdi);
-		break;
-	case SYS_READ:
-		f->R.rax = syscall_read((int)f->R.rdi, (void *)f->R.rsi, (unsigned)f->R.rdx);
-		break;
-	case SYS_WRITE:
-		f->R.rax = syscall_write((int)f->R.rdi, (const void *)f->R.rsi, (unsigned)f->R.rdx);
-		break;
-	case SYS_SEEK:
-		syscall_seek((int)f->R.rdi, (unsigned)f->R.rsi);
-		break;
-	case SYS_TELL:
-		f->R.rax = syscall_tell((int)f->R.rdi);
-		break;
-	case SYS_CLOSE:
-		syscall_close((int)f->R.rdi);
-		break;
-	case SYS_MMAP:
-		break;
-	case SYS_MUNMAP:
-		break;
-	case SYS_CHDIR:
-		break;
-	case SYS_MKDIR:
-		break;
-	case SYS_READDIR:
-		break;
-	case SYS_ISDIR:
-		break;
-	case SYS_INUMBER:
-		break;
-	case SYS_SYMLINK:
-		break;
-	case SYS_DUP2:
-		break;
-	case SYS_MOUNT:
-		break;
-	case SYS_UMOUNT:
-		break;
-	default:
-		thread_exit();
-		break;
-	}
+void syscall_half(void)
+{
+	power_off();
 }
 
 bool syscall_create(const char *file, unsigned initial_size)
@@ -152,7 +83,7 @@ int syscall_wait(pid_t pid)
 
 pid_t syscall_fork(const char *thread_name, struct intr_frame *if_ UNUSED)
 {
-	process_fork(thread_name, if_);
+	return process_fork(thread_name, if_);
 }
 
 void syscall_exit(int status)
@@ -170,14 +101,17 @@ int syscall_write(int fd, const void *buffer, unsigned size)
 
 	if (fd == 1)
 	{
+		lock_acquire(&filesys_lock);
 		putbuf(buffer, size);
+		lock_release(&filesys_lock);
+		
 		return size;
 	}
 	else if (fd == 0)
 	{
 		return -1;
 	}
-	else if (1 < fd < 64)
+	else if (fd > 1 && fd < 64)
 	{
 		struct file *write_file = fd_tofile(fd);
 		if (write_file == NULL)
@@ -192,11 +126,16 @@ int syscall_write(int fd, const void *buffer, unsigned size)
 			return wri;
 		}
 	}
+	return -1;
 }
 
-void syscall_half(void)
-{
-	power_off();
+int syscall_exec(const char* cmd_line){
+	check_addr(cmd_line);
+	int status = process_exec(cmd_line);
+	if(status == -1){
+		syscall_exit(status);
+	}
+	return thread_current()->tid;
 }
 
 bool syscall_remove(const char *file)
@@ -277,7 +216,7 @@ int syscall_read(int fd, void *buffer, unsigned size)
 	{
 		syscall_exit(-1);
 	}
-	else if (1 < fd < 64)
+	else if (fd > 1 && fd < 64)
 	{
 
 		struct file *read_file = fd_tofile(fd);
@@ -303,7 +242,7 @@ void syscall_seek(int fd, unsigned position)
 	}
 
 	struct file *seek_file = fd_tofile(fd);
-	check_addr(seek_file);
+	// check_addr(seek_file);
 
 	if (seek_file == NULL)
 	{
@@ -366,7 +305,82 @@ void syscall_close(int fd)
 	curr->fd_table[fd] = NULL;
 }
 
-
+/* The main system call interface */
+void
+syscall_handler (struct intr_frame *f UNUSED) {
+	uint64_t sys_number = f->R.rax;
+	// printf("syscall Number%d\n", sys_number);
+	switch (sys_number)
+	{
+	case SYS_HALT:
+		syscall_half();
+		break;
+	case SYS_EXIT: 
+		syscall_exit(f->R.rdi);
+	break;
+	case SYS_FORK:
+		f->R.rax = syscall_fork((const char *)f->R.rdi, f);
+		break;
+	case SYS_EXEC: 
+		f->R.rax = syscall_exec((const char*) f->R.rdi);
+		break;
+	case SYS_WAIT: 
+		f->R.rax = syscall_wait((pid_t)f->R.rdi);
+		break;
+	case SYS_CREATE: 
+		f->R.rax = syscall_create((const char *)f->R.rdi, (unsigned) f->R.rsi);
+		break;
+	case SYS_REMOVE:
+		f->R.rax = syscall_remove((const char *)f->R.rdi);
+		break;
+	case SYS_OPEN:
+		f->R.rax = syscall_open((const char *)f->R.rdi);
+		break;
+	case SYS_FILESIZE:
+		f->R.rax = syscall_filesize((int)f->R.rdi);
+		break;
+	case SYS_READ:
+		f->R.rax = syscall_read((int)f->R.rdi, (void *)f->R.rsi, (unsigned)f->R.rdx);
+		break;
+	case SYS_WRITE:
+		f->R.rax = syscall_write((int)f->R.rdi, (const void *)f->R.rsi, (unsigned)f->R.rdx);
+		break;
+	case SYS_SEEK:
+		syscall_seek((int)f->R.rdi, (unsigned)f->R.rsi);
+		break;
+	case SYS_TELL:
+		f->R.rax = syscall_tell((int)f->R.rdi);
+		break;
+	case SYS_CLOSE:
+		syscall_close((int)f->R.rdi);
+		break;
+	case SYS_MMAP:
+		break;
+	case SYS_MUNMAP:
+		break;
+	case SYS_CHDIR:
+		break;
+	case SYS_MKDIR:
+		break;
+	case SYS_READDIR:
+		break;
+	case SYS_ISDIR:
+		break;
+	case SYS_INUMBER:
+		break;
+	case SYS_SYMLINK:
+		break;
+	case SYS_DUP2:
+		break;
+	case SYS_MOUNT:
+		break;
+	case SYS_UMOUNT:
+		break;
+	default:
+		thread_exit();
+		break;
+	}
+}
 
 //////////////
 void check_addr(const void *addr)
